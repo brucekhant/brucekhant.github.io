@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ရွှေပင်ငွေပင် — Shwe Pin Ngwe Pin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Myanmar:wght@400;500;700&family=Noto+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="manifest" href="/manifest.json">
+<link rel="icon" href="/icon-192.png" sizes="192x192" type="image/png">
+<link rel="icon" href="/icon-512.png" sizes="512x512" type="image/png">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<meta name="theme-color" content="#12503a">
+<meta name="mobile-web-app-capable" content="yes">
+<style>
+:root{
+  --bg:#f6f4ee; --paper:#ffffff; --ink:#1c2420; --ink-2:#5b665f; --line:#dcd8cc;
+  --green:#12503a; --green-2:#0d3d2c; --gold:#b8862b; --gold-bg:#fbf3df; --red:#b23a2f; --red-bg:#fbe9e6;
+  --tab-h:64px;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#121815; --paper:#1a2320; --ink:#eef0ea; --ink-2:#9fa89f; --line:#2d3a33;
+    --green:#1e6b4d; --green-2:#14523a; --gold:#d9a648; --gold-bg:#2c2412; --red:#e06a5e; --red-bg:#3a1e1a;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#121815; --paper:#1a2320; --ink:#eef0ea; --ink-2:#9fa89f; --line:#2d3a33;
+  --green:#1e6b4d; --green-2:#14523a; --gold:#d9a648; --gold-bg:#2c2412; --red:#e06a5e; --red-bg:#3a1e1a;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font-family:"Noto Sans","Noto Sans Myanmar",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;font-size:16px;line-height:1.5;-webkit-font-smoothing:antialiased;padding-bottom:calc(var(--tab-h) + env(safe-area-inset-bottom))}
+.mm{font-family:"Noto Sans Myanmar","Noto Sans",system-ui,sans-serif;line-height:1.7}
+button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+input,select{font:inherit;color:var(--ink)}
+
+/* header */
+.top{background:var(--green);color:#fff;padding:14px 16px 12px;position:sticky;top:0;z-index:5}
+.top::after{content:"";display:block;height:4px;margin:12px -16px -12px;background:linear-gradient(90deg,var(--gold) 0 50%,#c9c9c9 50% 100%)}
+.brand{display:flex;align-items:baseline;justify-content:space-between;gap:12px}
+.brand{align-items:center}
+.brand .mark{width:40px;height:40px;flex:0 0 auto;border-radius:50%;box-shadow:0 0 0 2px rgba(255,255,255,.25)}
+.brand .name{display:flex;align-items:center;gap:10px}
+.login-logo{display:block;width:120px;height:120px;margin:8px auto 4px}
+.brand h1{margin:0;font-size:22px;font-weight:700;letter-spacing:.2px}
+.brand small{display:block;font-size:12px;opacity:.75;font-weight:400}
+.pill-btn{border:1px solid rgba(255,255,255,.35);border-radius:999px;padding:4px 12px;font-size:13px;color:#fff;white-space:nowrap}
+.pill-btn.on{background:#fff;color:var(--green)}
+.top-row{display:flex;gap:8px;align-items:center;margin-top:10px;flex-wrap:wrap}
+.who{font-size:13px;opacity:.9}
+.who select{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.35);color:#fff;border-radius:8px;padding:3px 8px;font-size:13px}
+.who select option{color:var(--ink);background:var(--paper)}
+.demo{font-size:12px;color:var(--ink-2);padding:8px 16px 0;text-align:center}
+.chips+.chips{margin-top:-2px}
+
+/* content */
+main{max-width:640px;margin:0 auto;padding:8px 12px 24px}
+.search{display:flex;gap:8px;align-items:center;background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin:8px 0 10px}
+.search input{flex:1;border:0;background:transparent;font-size:16px;outline:none}
+.chips{display:flex;gap:6px;overflow-x:auto;padding-bottom:6px;margin-bottom:6px;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex:0 0 auto;border:1px solid var(--line);background:var(--paper);border-radius:999px;padding:5px 12px;font-size:13px;color:var(--ink-2)}
+.chip.on{background:var(--green);border-color:var(--green);color:#fff}
+
+.list{background:var(--paper);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.row{display:grid;grid-template-columns:1fr auto;gap:4px 12px;padding:12px 14px;border-top:1px solid var(--line);width:100%;text-align:left}
+.row:first-child{border-top:0}
+.row:active{background:var(--bg)}
+.row .n{font-weight:500}
+.row .c{font-size:12px;color:var(--ink-2)}
+.row .p.need{color:var(--red);font-size:13px;font-weight:500}
+.row .p{font-weight:700;font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}
+.row .s{font-size:12px;text-align:right;color:var(--ink-2)}
+.row .s.low{color:var(--red);font-weight:500}
+.row .b{grid-column:1 / -1;font-size:12px;color:var(--gold);font-variant-numeric:tabular-nums}
+.empty{padding:32px 16px;text-align:center;color:var(--ink-2);font-size:14px}
+.sum{display:flex;justify-content:space-between;gap:12px;padding:12px 14px;font-size:14px;border-bottom:1px solid var(--line);background:var(--bg)}
+.sum b{font-variant-numeric:tabular-nums}
+.sum .gold{color:var(--gold)}
+h2{font-size:15px;font-weight:500;color:var(--ink-2);margin:16px 4px 6px}
+.fab{position:fixed;right:16px;bottom:calc(var(--tab-h) + 16px + env(safe-area-inset-bottom));background:var(--gold);color:#1c1a12;border-radius:999px;padding:12px 18px;font-weight:700;font-size:15px;box-shadow:0 6px 18px rgba(0,0,0,.18);z-index:4}
+.role{font-size:12px;border-radius:6px;padding:2px 8px;white-space:nowrap}
+.role.owner{background:var(--gold-bg);color:var(--gold)}
+.role.admin{background:var(--green);color:#fff}
+.role.staff{background:var(--bg);color:var(--ink-2);border:1px solid var(--line)}
+.tiny{font-size:13px;color:var(--green);text-decoration:underline;padding:4px 0}
+
+/* tabs */
+.tabs{position:fixed;left:0;right:0;bottom:0;height:calc(var(--tab-h) + env(safe-area-inset-bottom));padding-bottom:env(safe-area-inset-bottom);background:var(--paper);border-top:1px solid var(--line);display:flex;z-index:5}
+.tabs button{flex:1;font-size:13px;color:var(--ink-2);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}
+.tabs button span:first-child{font-size:20px}
+.tabs button.on{color:var(--green);font-weight:700}
+.tabs button{position:relative}
+.badge{position:absolute;top:6px;right:calc(50% - 26px);background:var(--gold);color:#1c1a12;font-size:11px;font-weight:700;border-radius:999px;min-width:18px;height:18px;line-height:18px;text-align:center;padding:0 5px;display:none}
+.line{display:grid;grid-template-columns:1fr auto;gap:2px 10px;padding:10px 14px;border-top:1px solid var(--line)}
+.line:first-child{border-top:0}
+.line .n{font-weight:500}
+.line .p{font-weight:700;font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}
+.line .ctl{display:flex;align-items:center;gap:8px;grid-column:1 / -1;font-size:14px;color:var(--ink-2)}
+.qbtn{width:34px;height:34px;border:1px solid var(--line);border-radius:10px;font-size:18px;font-weight:700;background:var(--bg)}
+.line input.pr{width:110px;border:1px solid var(--line);border-radius:8px;padding:5px 8px;background:var(--bg);font-size:14px;text-align:right}
+.line .rm{color:var(--red);font-size:13px;margin-left:auto}
+.sug{background:var(--paper);border:1px solid var(--line);border-radius:12px;overflow:hidden;margin-bottom:12px}
+.sug button{display:flex;justify-content:space-between;gap:10px;width:100%;text-align:left;padding:10px 14px;border-top:1px solid var(--line)}
+.sug button:first-child{border-top:0}
+.sug .c{font-size:12px;color:var(--ink-2)}
+
+/* sheet */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;z-index:9}
+.overlay.open{display:block}
+.sheet{position:fixed;left:0;right:0;bottom:0;max-height:92vh;overflow:auto;background:var(--paper);border-radius:18px 18px 0 0;padding:16px 16px calc(24px + env(safe-area-inset-bottom));z-index:10;transform:translateY(100%);transition:transform .2s ease;max-width:640px;margin:0 auto}
+.sheet.open{transform:none}
+@media (prefers-reduced-motion:reduce){.sheet{transition:none}}
+.sheet h3{margin:0 0 12px;font-size:18px}
+.f{display:flex;flex-direction:column;gap:4px;margin-bottom:12px}
+.f label{font-size:13px;color:var(--ink-2)}
+.f input,.f select{border:1px solid var(--line);border-radius:10px;padding:10px 12px;background:var(--bg);font-size:16px;width:100%}
+.f.gold label{color:var(--gold)}
+.f.gold input{border-color:var(--gold)}
+.acts{display:flex;gap:8px;margin-top:6px}
+.btn{flex:1;border-radius:12px;padding:12px;font-weight:700;text-align:center;font-size:15px}
+.btn.main{background:var(--green);color:#fff}
+.btn.quiet{border:1px solid var(--line)}
+.btn.danger{color:var(--red);border:1px solid var(--red-bg);flex:0 0 auto;padding:12px 14px}
+.hint{font-size:13px;color:var(--ink-2);margin:-4px 0 12px}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(var(--tab-h) + 80px);background:var(--ink);color:var(--bg);padding:8px 16px;border-radius:999px;font-size:14px;opacity:0;transition:opacity .2s;pointer-events:none;z-index:20}
+.toast.show{opacity:1}
+
+.who .role{vertical-align:middle}
+.role.owner{background:var(--gold-bg);color:var(--gold)}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="brand">
+    <div class="name"><img class="mark" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512' width='512' height='512'> <circle cx='256' cy='256' r='248' fill='%2312503a'/> <circle cx='256' cy='256' r='230' fill='none' stroke='%23b8862b' stroke-width='4' opacity='.85'/> <path d='M96 382 Q256 350 416 382' fill='none' stroke='%230b3527' stroke-width='10' stroke-linecap='round'/> <g transform='translate(172 256)'> <path d='M -13,44 L 13,44 L 17,118 L 30,126 L -30,126 L -17,118 Z' fill='%236b4a12'/> <path d='M -82,34 C -100,4 -80,-28 -56,-30 C -62,-66 -34,-88 -8,-80 C 4,-108 48,-104 56,-72 C 86,-72 100,-40 82,-14 C 104,12 88,48 58,48 L -58,48 C -88,48 -98,52 -82,34 Z' fill='%23d9a63a'/> <ellipse cx='-28' cy='-38' rx='26' ry='16' fill='%23f3d27a' opacity='.55'/> </g> <g transform='translate(340 256)'> <path d='M -13,44 L 13,44 L 17,118 L 30,126 L -30,126 L -17,118 Z' fill='%234e5a64'/> <path d='M -82,34 C -100,4 -80,-28 -56,-30 C -62,-66 -34,-88 -8,-80 C 4,-108 48,-104 56,-72 C 86,-72 100,-40 82,-14 C 104,12 88,48 58,48 L -58,48 C -88,48 -98,52 -82,34 Z' fill='%23c5ccd2'/> <ellipse cx='-28' cy='-38' rx='26' ry='16' fill='%23eef1f4' opacity='.55'/> </g> </svg>" alt=""><h1><span class="mm">ရွှေပင်ငွေပင်</span><small>Shwe Pin Ngwe Pin</small></h1></div>
+    <button class="pill-btn" id="langBtn" onclick="toggleLang()">မြန်မာ</button>
+  </div>
+  <div class="top-row" id="whoRow"></div>
+</header>
+
+<main id="main"><div class="empty" data-t="loading"></div></main>
+
+<button class="fab" id="fab" onclick="openItem()" data-t="addItem" style="display:none"></button>
+
+<nav class="tabs" id="tabs" style="display:none">
+  <button id="tab-items" class="on" onclick="go('items')"><span>▤</span><span data-t="items"></span></button>
+  <button id="tab-cart" onclick="go('cart')"><span>▦</span><span data-t="cart"></span><span class="badge" id="cartBadge"></span></button>
+  <button id="tab-sales" onclick="go('sales')"><span>⌁</span><span data-t="sales"></span></button>
+  <button id="tab-users" onclick="go('users')"><span>◉</span><span data-t="users"></span></button>
+</nav>
+
+<div class="overlay" id="overlay" onclick="closeSheet()"></div>
+<div class="sheet" id="sheet"></div>
+<div class="toast" id="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.116.0/dist/umd/supabase.min.js"></script>
+<script>
+// ---------- connection ----------
+const SUPABASE_URL = "https://mobdmjrnzjqmucuyxdqu.supabase.co";
+const SUPABASE_KEY = "sb_publishable_1v2n6JehLvI7Fa-8tg78qA_N6ov9-ei";
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// ---------- text (EN / MM) ----------
+const T = {
+  en:{loading:"Loading…", login:"Log in", email:"Email", password:"Password", loginFail:"Wrong email or password", logout:"Log out",
+      items:"Items", sales:"Sales", users:"Users", addItem:"+ Add item", search:"Search item name", all:"All",
+      noResults:"No items match. Check the spelling or add it.", empty:"No items yet. Add your first item.",
+      low:"low stock", buy:"Buy", margin:"margin", name:"Item name", category:"Category", sellPrice:"Selling price (MMK)",
+      buyPrice:"Buying price (MMK) — admin only", qty:"Quantity in stock", save:"Save item", cancel:"Cancel", delete:"Delete", edit:"Edit item", newItem:"New item",
+      sellItem:"Record a sale", soldQty:"Quantity sold", record:"Record sale", recorded:"Sale recorded", saved:"Saved", deleted:"Deleted",
+      today:"Today", total:"Total sales", profit:"Profit", noSales:"No sales recorded yet. Tap an item, then Record a sale.", sold:"sold",
+      owner:"Owner", admin:"Admin", staff:"Staff", promote:"Make admin", demote:"Make staff", ownerNote:"The owner can't be changed. Only admins can change roles. New logins start as staff.",
+      staffNote:"Only admins can see buying prices and edit items.", notEnough:"Not enough stock", needName:"Item needs a name", roleChanged:"Role changed",
+      cats:"Categories", newCat:"+ New category", editCat:"Edit category", catEn:"Name (English)", catMm:"Name (Burmese)", catInUse:"Move or delete its items first",
+      unit:"Unit", done:"Done", group:"Group", needPrice:"needs price", notCounted:"not counted", fltPrice:"No selling price", fltCount:"Not counted", fltLow:"Low stock",
+      summary:(n,p,c)=>`${n} items · ${p} need a price · ${c} not counted`, myName:"My name", rename:"Change my name", err:"Something went wrong: ",
+      confirmDel:"Delete this item? This can't be undone.", you:"you", offline:"No connection. Check internet and try again.",
+      cart:"Cart", addCart:"Add to cart", cartEmpty:"Search an item above and tap it to add. Prices fill in automatically.", cartTotal:"Total", cartClear:"Clear", cartRecord:"Record all as one sale", cartRecorded:"Sale recorded — ticket #", boughtOn:"Bought on", bought:"bought", ticket:"Ticket", each:"each", added:"Added to cart"},
+  mm:{loading:"ဖွင့်နေသည်…", login:"ဝင်မည်", email:"အီးမေးလ်", password:"စကားဝှက်", loginFail:"အီးမေးလ် သို့မဟုတ် စကားဝှက် မှားနေသည်", logout:"ထွက်မည်",
+      items:"ပစ္စည်းများ", sales:"ရောင်းချမှု", users:"အသုံးပြုသူများ", addItem:"+ ပစ္စည်းအသစ်", search:"ပစ္စည်းအမည် ရှာရန်", all:"အားလုံး",
+      noResults:"မတွေ့ပါ။ စာလုံးပေါင်း စစ်ပါ သို့မဟုတ် အသစ်ထည့်ပါ။", empty:"ပစ္စည်း မရှိသေးပါ။ ပထမဆုံး ပစ္စည်း ထည့်ပါ။",
+      low:"လက်ကျန်နည်း", buy:"ဝယ်ဈေး", margin:"အမြတ်", name:"ပစ္စည်းအမည်", category:"အမျိုးအစား", sellPrice:"ရောင်းဈေး (ကျပ်)",
+      buyPrice:"ဝယ်ဈေး (ကျပ်) — အက်ဒမင်သာ", qty:"လက်ကျန် အရေအတွက်", save:"သိမ်းမည်", cancel:"မလုပ်တော့", delete:"ဖျက်မည်", edit:"ပစ္စည်း ပြင်မည်", newItem:"ပစ္စည်းအသစ်",
+      sellItem:"ရောင်းချမှု မှတ်မည်", soldQty:"ရောင်းသည့် အရေအတွက်", record:"မှတ်မည်", recorded:"မှတ်ပြီးပါပြီ", saved:"သိမ်းပြီးပါပြီ", deleted:"ဖျက်ပြီးပါပြီ",
+      today:"ယနေ့", total:"စုစုပေါင်း ရောင်းရငွေ", profit:"အမြတ်", noSales:"ရောင်းချမှု မရှိသေးပါ။ ပစ္စည်းကို နှိပ်ပြီး ရောင်းချမှု မှတ်ပါ။", sold:"ရောင်းပြီး",
+      owner:"ပိုင်ရှင်", admin:"အက်ဒမင်", staff:"ဝန်ထမ်း", promote:"အက်ဒမင် လုပ်မည်", demote:"ဝန်ထမ်း ပြောင်းမည်", ownerNote:"ပိုင်ရှင်ကို ပြောင်း၍ မရပါ။ အက်ဒမင်များသာ role ပြောင်းနိုင်သည်။ အကောင့်အသစ်များသည် ဝန်ထမ်းအဖြစ် စတင်သည်။",
+      staffNote:"ဝယ်ဈေးနှင့် ပြင်ဆင်ခွင့်ကို အက်ဒမင်များသာ ရသည်။", notEnough:"လက်ကျန် မလုံလောက်ပါ", needName:"ပစ္စည်းအမည် လိုပါသည်", roleChanged:"Role ပြောင်းပြီးပါပြီ",
+      cats:"အမျိုးအစားများ", newCat:"+ အမျိုးအစားအသစ်", editCat:"အမျိုးအစား ပြင်မည်", catEn:"အမည် (အင်္ဂလိပ်)", catMm:"အမည် (မြန်မာ)", catInUse:"အထဲက ပစ္စည်းများကို အရင် ရွှေ့/ဖျက်ပါ",
+      unit:"ယူနစ်", done:"ပြီးပြီ", group:"အုပ်စု", needPrice:"ဈေး မသတ်မှတ်ရသေး", notCounted:"မရေတွက်ရသေး", fltPrice:"ရောင်းဈေး မရှိသေး", fltCount:"မရေတွက်ရသေး", fltLow:"လက်ကျန်နည်း",
+      summary:(n,p,c)=>`ပစ္စည်း ${n} · ဈေးလို ${p} · မရေတွက်ရသေး ${c}`, myName:"ကျွန်ုပ်အမည်", rename:"အမည် ပြောင်းမည်", err:"အမှားဖြစ်သွားသည် - ",
+      confirmDel:"ဒီပစ္စည်းကို ဖျက်မလား? ပြန်ယူ၍ မရပါ။", you:"မင်း", offline:"အင်တာနက် မရှိပါ။ စစ်ပြီး ပြန်ကြိုးစားပါ။",
+      cart:"ငွေတွက်", addCart:"ငွေတွက်ထဲ ထည့်မည်", cartEmpty:"အပေါ်မှာ ပစ္စည်း ရှာပြီး နှိပ်ပါ။ ဈေးက အလိုလို ဝင်လာမည်။", cartTotal:"စုစုပေါင်း", cartClear:"ရှင်းမည်", cartRecord:"အားလုံး ရောင်းချမှု မှတ်မည်", cartRecorded:"မှတ်ပြီးပါပြီ — ဘောက်ချာ #", boughtOn:"ဝယ်သည့်ရက်", bought:"ဝယ်ရက်", ticket:"ဘောက်ချာ", each:"တစ်ခု", added:"ထည့်ပြီးပါပြီ"}
+};
+const UNITS = [
+  {id:"pc",en:"piece",mm:"ခု"},{id:"len",en:"length",mm:"ချောင်း"},{id:"m",en:"meter",mm:"မီတာ"},{id:"ft",en:"foot",mm:"ပေ"},{id:"roll",en:"roll",mm:"ခွေ"},
+  {id:"bag",en:"bag",mm:"အိတ်"},{id:"sack",en:"sack",mm:"ဖာ"},{id:"pack",en:"pack",mm:"ထုပ်"},{id:"bundle",en:"bundle",mm:"စည်း"},{id:"kg",en:"kg",mm:"ကီလို"},{id:"box",en:"box",mm:"ဘူး"},{id:"set",en:"set",mm:"စုံ"},
+];
+
+// ---------- state ----------
+let S = {lang:"en", tab:"items", q:"", cq:"", cart:[], group:"all", cat:"all", flt:"none", me:null, users:[], groups:[], cats:[], items:[], costs:{}, sales:[]};
+try{ const l=localStorage.getItem("spnp-lang"); if(l) S.lang=l; }catch(e){}
+const t = k => T[S.lang][k] || k;
+const isAdmin = () => S.me && (S.me.role==="owner" || S.me.role==="admin");
+const fmt = n => (n===null||n===undefined||n==="") ? "—" : new Intl.NumberFormat("en-US").format(n);
+const catName = id => { const c = S.cats.find(c=>c.id===id); return c ? (S.lang==="mm"?c.name_mm:c.name_en) : ""; };
+const gName = g => S.lang==="mm"?g.name_mm:g.name_en;
+const cName = c => S.lang==="mm"?c.name_mm:c.name_en;
+const unitName = id => { const u = UNITS.find(u=>u.id===(id||"pc")); return u ? u[S.lang] : id; };
+const esc = s => String(s??"").replace(/[&<>"]/g, m => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[m]));
+function toast(msg){ const el=document.getElementById("toast"); el.textContent=msg; el.classList.add("show"); clearTimeout(el._t); el._t=setTimeout(()=>el.classList.remove("show"),2200); }
+function fail(e){ console.error(e); const m=(e&&e.message)||String(e); toast(/fetch|network/i.test(m)?t("offline"):t("err")+m.replace(/^.*?:\s*/,"").slice(0,80)); }
+const uname = id => { const u=S.users.find(u=>u.id===id); return u?u.name:""; };
+
+// ---------- auth ----------
+async function boot(){
+  const { data:{ session } } = await sb.auth.getSession();
+  if(!session){ renderLogin(); return; }
+  await loadAll();
+}
+sb.auth.onAuthStateChange((ev)=>{ if(ev==="SIGNED_OUT"){ S.me=null; renderLogin(); } });
+
+function renderLogin(){
+  document.getElementById("tabs").style.display="none"; document.getElementById("fab").style.display="none";
+  document.getElementById("whoRow").innerHTML="";
+  applyLang();
+  document.getElementById("main").innerHTML=`
+    <img class="login-logo" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512' width='512' height='512'> <circle cx='256' cy='256' r='248' fill='%2312503a'/> <circle cx='256' cy='256' r='230' fill='none' stroke='%23b8862b' stroke-width='4' opacity='.85'/> <path d='M96 382 Q256 350 416 382' fill='none' stroke='%230b3527' stroke-width='10' stroke-linecap='round'/> <g transform='translate(172 256)'> <path d='M -13,44 L 13,44 L 17,118 L 30,126 L -30,126 L -17,118 Z' fill='%236b4a12'/> <path d='M -82,34 C -100,4 -80,-28 -56,-30 C -62,-66 -34,-88 -8,-80 C 4,-108 48,-104 56,-72 C 86,-72 100,-40 82,-14 C 104,12 88,48 58,48 L -58,48 C -88,48 -98,52 -82,34 Z' fill='%23d9a63a'/> <ellipse cx='-28' cy='-38' rx='26' ry='16' fill='%23f3d27a' opacity='.55'/> </g> <g transform='translate(340 256)'> <path d='M -13,44 L 13,44 L 17,118 L 30,126 L -30,126 L -17,118 Z' fill='%234e5a64'/> <path d='M -82,34 C -100,4 -80,-28 -56,-30 C -62,-66 -34,-88 -8,-80 C 4,-108 48,-104 56,-72 C 86,-72 100,-40 82,-14 C 104,12 88,48 58,48 L -58,48 C -88,48 -98,52 -82,34 Z' fill='%23c5ccd2'/> <ellipse cx='-28' cy='-38' rx='26' ry='16' fill='%23eef1f4' opacity='.55'/> </g> </svg>" alt="">
+    <div class="list" style="margin-top:12px;padding:18px 16px">
+      <h3 style="margin:0 0 14px">${t("login")}</h3>
+      <div class="f"><label>${t("email")}</label><input id="le" type="email" autocomplete="username" inputmode="email"></div>
+      <div class="f"><label>${t("password")}</label><input id="lp" type="password" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()"></div>
+      <div class="acts"><button class="btn main" id="loginBtn" onclick="doLogin()">${t("login")}</button></div>
+    </div>`;
+}
+async function doLogin(){
+  const b=document.getElementById("loginBtn"); b.disabled=true;
+  const { error } = await sb.auth.signInWithPassword({ email:document.getElementById("le").value.trim(), password:document.getElementById("lp").value });
+  b.disabled=false;
+  if(error){ toast(/invalid/i.test(error.message)?t("loginFail"):error.message); return; }
+  document.getElementById("main").innerHTML=`<div class="empty">${t("loading")}</div>`;
+  await loadAll();
+}
+async function doLogout(){ await sb.auth.signOut(); }
+
+// ---------- data ----------
+async function loadAll(){
+  try{
+    const { data:{ user } } = await sb.auth.getUser();
+    const [pr, gr, ca, it] = await Promise.all([
+      sb.from("profiles").select("id,name,role").order("created_at"),
+      sb.from("groups").select("*").order("sort"),
+      sb.from("categories").select("*").order("sort"),
+      sb.from("items").select("*").order("id"),
+    ]);
+    for(const r of [pr,gr,ca,it]) if(r.error) throw r.error;
+    S.users=pr.data; S.groups=gr.data; S.cats=ca.data; S.items=it.data;
+    S.me=S.users.find(u=>u.id===user.id);
+    if(isAdmin()){ const c=await sb.from("item_costs").select("*"); if(c.error) throw c.error; S.costs={}; c.data.forEach(x=>S.costs[x.item_id]=x.buy_price); }
+    await loadSales();
+    document.getElementById("tabs").style.display=""; render();
+  }catch(e){ fail(e); }
+}
+async function loadSales(){
+  const r = isAdmin() ? await sb.rpc("sales_with_cost") : await sb.from("sales").select("id,item_id,item_name,qty,sell_price,sold_by,sold_at,ticket").order("sold_at",{ascending:false}).limit(500);
+  if(r.error) throw r.error; S.sales=r.data;
+}
+
+// ---------- render ----------
+function applyLang(){
+  document.documentElement.lang = S.lang==="mm" ? "my" : "en";
+  document.body.classList.toggle("mm", S.lang==="mm");
+  document.querySelectorAll("[data-t]").forEach(el=> el.textContent = t(el.dataset.t));
+  document.getElementById("langBtn").textContent = S.lang==="en" ? "မြန်မာ" : "English";
+}
+function render(){
+  applyLang();
+  document.getElementById("whoRow").innerHTML = S.me ? `<span class="who">${esc(S.me.name)} · <span class="role ${S.me.role}">${t(S.me.role)}</span></span><button class="pill-btn" onclick="doLogout()">${t("logout")}</button>` : "";
+  ["items","cart","sales","users"].forEach(x=> document.getElementById("tab-"+x).classList.toggle("on", S.tab===x));
+  const bd=document.getElementById("cartBadge"); const cn=S.cart.reduce((a,l)=>a+l.qty,0); bd.textContent=cn; bd.style.display=cn?"":"none";
+  document.getElementById("fab").style.display = (S.tab==="items" && isAdmin()) ? "" : "none";
+  const m = document.getElementById("main");
+  if(S.tab==="items") m.innerHTML = viewItems();
+  else if(S.tab==="cart") m.innerHTML = viewCart();
+  else if(S.tab==="sales") m.innerHTML = viewSales();
+  else m.innerHTML = viewUsers();
+}
+
+function viewItems(){
+  const q = S.q.trim().toLowerCase();
+  const inScope = i => (S.group==="all" || (S.cats.find(c=>c.id===i.category_id)||{}).group_id===S.group) && (S.cat==="all"||i.category_id===S.cat);
+  let list = S.items.filter(i => inScope(i) && (!q || i.name.toLowerCase().includes(q) || catName(i.category_id).toLowerCase().includes(q)));
+  if(S.flt==="price") list = list.filter(i=>!i.sell_price);
+  if(S.flt==="count") list = list.filter(i=>i.qty===null);
+  if(S.flt==="low") list = list.filter(i=>i.qty!==null && i.qty<=3);
+  const gchips = [`<button class="chip ${S.group==="all"?"on":""}" onclick="setGroup('all')">${t("all")}</button>`, ...S.groups.map(g=>`<button class="chip ${S.group===g.id?"on":""}" onclick="setGroup('${g.id}')">${esc(gName(g))}</button>`)].join("");
+  const subcats = S.cats.filter(c=>c.group_id===S.group);
+  let cchips = S.group==="all" ? "" : [`<button class="chip ${S.cat==="all"?"on":""}" onclick="setCat('all')">${t("all")}</button>`, ...subcats.map(c=>`<button class="chip ${S.cat===c.id?"on":""}" onclick="setCat('${c.id}')">${esc(cName(c))}</button>`)].join("");
+  if(isAdmin()) cchips += `<button class="chip" style="border-style:dashed" onclick="openCats()">✎ ${t("cats")}</button>`;
+  const fchips = [["price",t("fltPrice")],["count",t("fltCount")],["low",t("fltLow")]].map(([k,l])=>`<button class="chip ${S.flt===k?"on":""}" onclick="setFlt('${k}')">${l}</button>`).join("");
+  const scoped = S.items.filter(inScope);
+  const needP = scoped.filter(i=>!i.sell_price).length, needC = scoped.filter(i=>i.qty===null).length;
+  const rows = list.map(i=>{
+    const counted = i.qty!==null; const buy = S.costs[i.id];
+    const stock = counted ? `${i.qty} ${unitName(i.unit)}${i.qty<=3?" · "+t("low"):""}` : t("notCounted");
+    return `
+    <button class="row" onclick="tapItem(${i.id})">
+      <span class="n">${esc(i.name)}</span>
+      <span class="p ${i.sell_price?"":"need"}">${i.sell_price?fmt(i.sell_price):t("needPrice")}</span>
+      <span class="c">${S.cat==="all"?esc(catName(i.category_id)):""}</span>
+      <span class="s ${(counted&&i.qty<=3)||!counted?"low":""}">${stock}</span>
+      ${isAdmin()?`<span class="b">${t("buy")} ${fmt(buy)}${i.sell_price&&buy?" · "+t("margin")+" "+fmt(i.sell_price-buy):""}${i.bought_on?" · "+t("bought")+" "+i.bought_on:""}</span>`:""}
+    </button>`;}).join("");
+  return `
+    <div class="search"><span>⌕</span><input id="q" value="${esc(S.q)}" placeholder="${t("search")}" oninput="setQ(this.value)"></div>
+    <div class="chips">${gchips}</div>
+    ${cchips?`<div class="chips">${cchips}</div>`:""}
+    <div class="chips">${fchips}</div>
+    <p class="hint" style="margin:2px 4px 8px">${t("summary")(scoped.length, needP, needC)}</p>
+    <div class="list">${rows || `<div class="empty">${S.items.length? t("noResults") : t("empty")}</div>`}</div>
+    ${!isAdmin()?`<p class="hint" style="margin-top:12px">${t("staffNote")}</p>`:""}`;
+}
+
+function viewCart(){
+  const q=S.cq.trim().toLowerCase();
+  const sug = q ? S.items.filter(i=>i.name.toLowerCase().includes(q)).slice(0,8) : [];
+  const total = S.cart.reduce((a,l)=>a+(l.price||0)*l.qty,0);
+  const lines = S.cart.map((l,idx)=>`
+    <div class="line">
+      <span class="n">${esc(l.name)}</span>
+      <span class="p">${l.price?fmt(l.price*l.qty):"—"}</span>
+      <span class="ctl">
+        <button class="qbtn" onclick="cartQty(${idx},-1)">−</button><b>${l.qty}</b><button class="qbtn" onclick="cartQty(${idx},1)">+</button>
+        <input class="pr" type="number" inputmode="numeric" value="${l.price??""}" placeholder="${t("needPrice")}" onchange="cartPrice(${idx},this.value)"> <span>${t("each")}</span>
+        <button class="rm" onclick="cartRemove(${idx})">✕</button>
+      </span>
+    </div>`).join("");
+  return `
+    <div class="search"><span>⌕</span><input id="cq" value="${esc(S.cq)}" placeholder="${t("search")}" oninput="setCQ(this.value)"></div>
+    ${sug.length?`<div class="sug">${sug.map(i=>`<button onclick="addToCart(${i.id},1)"><span>${esc(i.name)}<br><span class="c">${esc(catName(i.category_id))}</span></span><span class="p">${i.sell_price?fmt(i.sell_price):t("needPrice")}</span></button>`).join("")}</div>`:""}
+    <div class="list">
+      ${lines || `<div class="empty">${t("cartEmpty")}</div>`}
+      ${S.cart.length?`<div class="sum" style="border-top:1px solid var(--line);border-bottom:0;font-size:17px"><span>${t("cartTotal")}</span><b>${fmt(total)}</b></div>`:""}
+    </div>
+    ${S.cart.length?`<div class="acts" style="margin-top:12px"><button class="btn quiet" onclick="cartClear()">${t("cartClear")}</button><button class="btn main" id="cartBtn" onclick="recordCart()">${t("cartRecord")}</button></div>`:""}`;
+}
+function setCQ(v){ S.cq=v; render(); const q=document.getElementById("cq"); q.focus(); q.setSelectionRange(v.length,v.length); }
+function addToCart(id, qty){
+  const i=S.items.find(x=>x.id===id); const ex=S.cart.find(l=>l.item_id===id);
+  if(ex) ex.qty+=qty; else S.cart.push({item_id:id, name:i.name, qty:qty, price:i.sell_price});
+  S.cq=""; toast(t("added")); render();
+}
+function cartQty(idx,d){ S.cart[idx].qty=Math.max(1,S.cart[idx].qty+d); render(); }
+function cartPrice(idx,v){ S.cart[idx].price = v===""?null:+v; render(); }
+function cartRemove(idx){ S.cart.splice(idx,1); render(); }
+function cartClear(){ S.cart=[]; render(); }
+async function recordCart(){
+  if(S.cart.some(l=>!l.price)){ toast(t("needPrice")); return; }
+  const b=document.getElementById("cartBtn"); b.disabled=true;
+  try{
+    const {data,error}=await sb.rpc("record_cart",{lines:S.cart.map(l=>({item_id:l.item_id,qty:l.qty,price:l.price}))}); if(error) throw error;
+    S.cart.forEach(l=>{ const i=S.items.find(x=>x.id===l.item_id); if(i && i.qty!==null) i.qty-=l.qty; });
+    S.cart=[]; await loadSales(); toast(t("cartRecorded")+data); S.tab="sales"; render();
+  }catch(e){ b.disabled=false; fail(e); }
+}
+
+function viewSales(){
+  if(!S.sales.length) return `<div class="list"><div class="empty">${t("noSales")}</div></div>`;
+  const byDay = {};
+  S.sales.forEach(s=>{ const d=new Date(s.sold_at); const key=d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); (byDay[key]=byDay[key]||[]).push(s); });
+  const now=new Date(); const today=now.getFullYear()+"-"+String(now.getMonth()+1).padStart(2,"0")+"-"+String(now.getDate()).padStart(2,"0");
+  return Object.keys(byDay).sort().reverse().map(d=>{
+    const rows = byDay[d];
+    const total = rows.reduce((a,s)=>a+s.sell_price*s.qty,0);
+    const hasCost = isAdmin() && rows.every(s=>s.buy_price!==null && s.buy_price!==undefined);
+    const profit = rows.reduce((a,s)=>a+(s.sell_price-(s.buy_price||0))*s.qty,0);
+    return `<h2>${d===today?t("today")+" · ":""}${d}</h2>
+      <div class="list">
+        <div class="sum"><span>${t("total")}</span><b>${fmt(total)}</b></div>
+        ${isAdmin()?`<div class="sum"><span class="gold">${t("profit")}${hasCost?"":" *"}</span><b class="gold">${fmt(profit)}</b></div>`:""}
+        ${(()=>{ const tk={}; const order=[]; rows.forEach(s=>{ const k=s.ticket?("t"+s.ticket):("s"+s.id); if(!tk[k]){tk[k]=[];order.push(k);} tk[k].push(s); });
+          return order.map(k=>{ const g=tk[k]; const tm=new Date(g[0].sold_at); const gt=g.reduce((a,s)=>a+s.sell_price*s.qty,0);
+            const head = g.length>1||g[0].ticket ? `<div class="row" style="background:var(--bg)"><span class="c">${t("ticket")} #${g[0].ticket||"—"} · ${esc(uname(g[0].sold_by))} · ${String(tm.getHours()).padStart(2,"0")}:${String(tm.getMinutes()).padStart(2,"0")}</span><span class="p" style="font-size:14px">${fmt(gt)}</span></div>` : "";
+            return head + g.map(s=>`<div class="row"><span class="n">${esc(s.item_name)}</span><span class="p" style="font-weight:500">${fmt(s.sell_price*s.qty)}</span><span class="c">${s.qty} × ${fmt(s.sell_price)}${head?"":" · "+esc(uname(s.sold_by))}</span><span class="s">${head?"":String(tm.getHours()).padStart(2,"0")+":"+String(tm.getMinutes()).padStart(2,"0")}</span></div>`).join("");
+          }).join(""); })()}
+      </div>`;
+  }).join("");
+}
+
+function viewUsers(){
+  const rows = S.users.map(u=>{
+    const self = u.id===S.me.id;
+    const canChange = isAdmin() && u.role!=="owner" && !self;
+    const act = canChange ? `<button class="tiny" onclick="setRole('${u.id}','${u.role==="admin"?"staff":"admin"}')">${u.role==="admin"?t("demote"):t("promote")}</button>` : (self?`<button class="tiny" onclick="openRename()">${t("rename")}</button>`:"");
+    return `<div class="row"><span class="n">${esc(u.name)}${self?` <span class="c">(${t("you")})</span>`:""}</span><span class="role ${u.role}">${t(u.role)}</span><span class="c">${act}</span></div>`;
+  }).join("");
+  return `<div class="list">${rows}</div><p class="hint" style="margin-top:12px">${t("ownerNote")}</p>`;
+}
+
+// ---------- actions ----------
+function toggleLang(){ S.lang = S.lang==="en"?"mm":"en"; try{localStorage.setItem("spnp-lang",S.lang);}catch(e){} S.me?render():renderLogin(); }
+function go(tab){ S.tab=tab; render(); }
+function setCat(c){ S.cat=c; render(); }
+function setGroup(g){ S.group=g; S.cat="all"; render(); }
+function setFlt(f){ S.flt = S.flt===f ? "none" : f; render(); }
+function setQ(v){ S.q=v; render(); const q=document.getElementById("q"); q.focus(); q.setSelectionRange(v.length,v.length); }
+async function setRole(id, role){
+  try{ const {error}=await sb.rpc("set_role",{target:id,new_role:role}); if(error) throw error;
+    S.users.find(u=>u.id===id).role=role; toast(t("roleChanged")); render(); }catch(e){ fail(e); }
+}
+function tapItem(id){ openSell(id); }
+function openSheet(html){ document.getElementById("sheet").innerHTML=html; document.getElementById("overlay").classList.add("open"); document.getElementById("sheet").classList.add("open"); }
+function closeSheet(){ document.getElementById("overlay").classList.remove("open"); document.getElementById("sheet").classList.remove("open"); }
+
+function openSell(id){
+  const i = S.items.find(x=>x.id===id);
+  openSheet(`
+    <h3>${t("sellItem")}</h3>
+    <p class="hint"><b>${esc(i.name)}</b> · ${i.sell_price?fmt(i.sell_price):t("needPrice")} · ${i.qty===null?t("notCounted"):i.qty+" "+unitName(i.unit)}</p>
+    <div class="f"><label>${t("soldQty")}</label><input id="sq" type="number" inputmode="numeric" min="1" value="1"></div>
+    <div class="acts">
+      <button class="btn quiet" onclick="closeSheet()">${t("cancel")}</button>
+      <button class="btn main" id="sellBtn" onclick="recordSale(${id})">${t("record")}</button>
+    </div>
+    <div class="acts"><button class="btn quiet" onclick="addToCart(${id}, parseInt(document.getElementById('sq').value,10)||1); closeSheet();">${t("addCart")}</button></div>
+    ${isAdmin()?`<div class="acts"><button class="btn quiet" onclick="openItem(${id})">${t("edit")}</button></div>`:""}`);
+  setTimeout(()=>document.getElementById("sq").select(),50);
+}
+async function recordSale(id){
+  const i = S.items.find(x=>x.id===id); const qty = parseInt(document.getElementById("sq").value,10);
+  if(!qty || qty<1) return;
+  if(!i.sell_price){ toast(t("needPrice")); return; }
+  if(i.qty===null || qty>i.qty){ toast(t("notEnough")); return; }
+  const b=document.getElementById("sellBtn"); b.disabled=true;
+  try{ const {error}=await sb.rpc("record_sale",{p_item:id,p_qty:qty}); if(error) throw error;
+    i.qty-=qty; await loadSales(); closeSheet(); toast(t("recorded")); render(); }
+  catch(e){ b.disabled=false; fail(e); }
+}
+
+function openItem(id){
+  if(!isAdmin()) return;
+  const i = id ? S.items.find(x=>x.id===id) : {name:"",category_id:(S.cat!=="all"?S.cat:(S.cats.find(c=>c.group_id===S.group)||S.cats[0]).id),unit:"pc",sell_price:null,qty:null};
+  const buy = id ? S.costs[id] : null;
+  openSheet(`
+    <h3>${id?t("edit"):t("newItem")}</h3>
+    <div class="f"><label>${t("name")}</label><input id="fn" value="${esc(i.name)}" autocomplete="off"></div>
+    <div class="f"><label>${t("category")}</label><select id="fc">${S.groups.map(g=>`<optgroup label="${esc(gName(g))}">${S.cats.filter(c=>c.group_id===g.id).map(c=>`<option value="${c.id}" ${c.id===i.category_id?"selected":""}>${esc(cName(c))}</option>`).join("")}</optgroup>`).join("")}</select></div>
+    <div class="f"><label>${t("unit")}</label><select id="fu">${UNITS.map(u=>`<option value="${u.id}" ${u.id===(i.unit||"pc")?"selected":""}>${u[S.lang]}</option>`).join("")}</select></div>
+    <div class="f"><label>${t("sellPrice")}</label><input id="fs" type="number" inputmode="numeric" value="${i.sell_price??""}"></div>
+    <div class="f gold"><label>${t("buyPrice")}</label><input id="fb" type="number" inputmode="numeric" value="${buy??""}"></div>
+    <div class="f"><label>${t("qty")}</label><input id="fq" type="number" inputmode="numeric" value="${i.qty??""}" placeholder="${t("notCounted")}"></div>
+    <div class="f"><label>${t("boughtOn")}</label><input id="fd" type="date" value="${i.bought_on??""}"></div>
+    <div class="acts">
+      ${id?`<button class="btn danger" onclick="delItem(${id})">${t("delete")}</button>`:""}
+      <button class="btn quiet" onclick="closeSheet()">${t("cancel")}</button>
+      <button class="btn main" id="saveBtn" onclick="saveItem(${id||0})">${t("save")}</button>
+    </div>`);
+  setTimeout(()=>document.getElementById(id?"fs":"fn").focus(),50);
+}
+async function saveItem(id){
+  const name=document.getElementById("fn").value.trim(); if(!name){ toast(t("needName")); return; }
+  const v=k=>{ const x=document.getElementById(k).value.trim(); return x===""?null:+x; };
+  const d={name, category_id:document.getElementById("fc").value, unit:document.getElementById("fu").value, sell_price:v("fs"), qty:v("fq"), bought_on:document.getElementById("fd").value||null, updated_at:new Date().toISOString()};
+  const buy=v("fb"); const b=document.getElementById("saveBtn"); b.disabled=true;
+  try{
+    if(id){
+      const {error}=await sb.from("items").update(d).eq("id",id); if(error) throw error;
+      Object.assign(S.items.find(x=>x.id===id), d);
+    } else {
+      const {data,error}=await sb.from("items").insert(d).select().single(); if(error) throw error;
+      S.items.push(data); id=data.id;
+    }
+    const c=await sb.from("item_costs").upsert({item_id:id, buy_price:buy}); if(c.error) throw c.error;
+    S.costs[id]=buy; closeSheet(); toast(t("saved")); render();
+  }catch(e){ b.disabled=false; fail(e); }
+}
+async function delItem(id){
+  if(!confirm(t("confirmDel"))) return;
+  try{ const {error}=await sb.from("items").delete().eq("id",id); if(error) throw error;
+    S.items=S.items.filter(x=>x.id!==id); delete S.costs[id]; closeSheet(); toast(t("deleted")); render(); }catch(e){ fail(e); }
+}
+
+function openCats(){
+  if(!isAdmin()) return;
+  const rows = S.cats.filter(c=>S.group==="all"||c.group_id===S.group).map(c=>{
+    const n = S.items.filter(i=>i.category_id===c.id).length;
+    return `<div class="row"><span class="n">${esc(c.name_en)} · <span class="mm">${esc(c.name_mm)}</span></span><span class="c">${n} ${t("items").toLowerCase()}</span><span class="c"><button class="tiny" onclick="openCatForm('${c.id}')">${t("edit")}</button></span></div>`;
+  }).join("");
+  openSheet(`<h3>${t("cats")}</h3><div class="list">${rows}</div>
+    <div class="acts"><button class="btn quiet" onclick="closeSheet()">${t("done")}</button><button class="btn main" onclick="openCatForm('')">${t("newCat")}</button></div>`);
+}
+function openCatForm(id){
+  const c = id ? S.cats.find(x=>x.id===id) : {name_en:"",name_mm:"",group_id:(S.group!=="all"?S.group:S.groups[0].id)};
+  const n = id ? S.items.filter(i=>i.category_id===id).length : 0;
+  openSheet(`<h3>${id?t("editCat"):t("newCat").replace("+ ","")}</h3>
+    <div class="f"><label>${t("catEn")}</label><input id="ce" value="${esc(c.name_en)}" autocomplete="off"></div>
+    <div class="f"><label>${t("catMm")}</label><input id="cm" class="mm" value="${esc(c.name_mm)}" autocomplete="off"></div>
+    <div class="f"><label>${t("group")}</label><select id="cg">${S.groups.map(g=>`<option value="${g.id}" ${g.id===c.group_id?"selected":""}>${esc(gName(g))}</option>`).join("")}</select></div>
+    ${id && n ? `<p class="hint">${t("catInUse")} (${n})</p>`:""}
+    <div class="acts">
+      ${id ? `<button class="btn danger" ${n?"disabled style='opacity:.4'":""} onclick="delCat('${id}')">${t("delete")}</button>`:""}
+      <button class="btn quiet" onclick="openCats()">${t("cancel")}</button>
+      <button class="btn main" onclick="saveCat('${id}')">${t("save")}</button>
+    </div>`);
+  setTimeout(()=>document.getElementById("ce").focus(),50);
+}
+async function saveCat(id){
+  const en=document.getElementById("ce").value.trim(), mm=document.getElementById("cm").value.trim();
+  if(!en && !mm){ toast(t("needName")); return; }
+  const d={name_en:en||mm, name_mm:mm||en, group_id:document.getElementById("cg").value};
+  try{
+    if(id){ const {error}=await sb.from("categories").update(d).eq("id",id); if(error) throw error; Object.assign(S.cats.find(x=>x.id===id), d); }
+    else { d.id="c"+Date.now(); d.sort=S.cats.length+1; const {error}=await sb.from("categories").insert(d); if(error) throw error; S.cats.push(d); }
+    toast(t("saved")); render(); openCats();
+  }catch(e){ fail(e); }
+}
+async function delCat(id){
+  if(S.items.some(i=>i.category_id===id)){ toast(t("catInUse")); return; }
+  try{ const {error}=await sb.from("categories").delete().eq("id",id); if(error) throw error;
+    S.cats=S.cats.filter(c=>c.id!==id); if(S.cat===id) S.cat="all"; toast(t("deleted")); render(); openCats(); }catch(e){ fail(e); }
+}
+function openRename(){
+  openSheet(`<h3>${t("rename")}</h3><div class="f"><label>${t("myName")}</label><input id="rn" value="${esc(S.me.name)}"></div>
+    <div class="acts"><button class="btn quiet" onclick="closeSheet()">${t("cancel")}</button><button class="btn main" onclick="saveName()">${t("save")}</button></div>`);
+}
+async function saveName(){
+  const name=document.getElementById("rn").value.trim(); if(!name) return;
+  try{ const {error}=await sb.from("profiles").update({name}).eq("id",S.me.id); if(error) throw error; S.me.name=name; closeSheet(); toast(t("saved")); render(); }catch(e){ fail(e); }
+}
+
+boot();
+if("serviceWorker" in navigator){ navigator.serviceWorker.register("/sw.js").catch(()=>{}); }
+</script>
+
+</body>
+</html>
