@@ -1,0 +1,1786 @@
+<!DOCTYPE html>
+<html lang="my">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#10162c">
+<title>The Quiet Kingdom</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700&family=Padauk:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root { --ink:#fffaf0; --glass:rgba(20,26,48,.38); --gold:#ffd98a; }
+  html,body { margin:0; height:100%; overflow:hidden; background:#10162c; font-family:'Quicksand','Padauk','Myanmar Text',system-ui,sans-serif; color:var(--ink); user-select:none; }
+  canvas { display:block; touch-action:none; }
+  body { -webkit-touch-callout:none; -webkit-tap-highlight-color:transparent; overscroll-behavior:none; }
+  .mm { font-family:'Padauk','Myanmar Text',sans-serif; }
+  /* touch controls: only shown on phones/tablets */
+  .touch-only { display:none; } body.touch .touch-only { display:revert; } body.touch .desk-only { display:none; }
+  #tbtns { position:absolute; top:64px; right:18px; display:none; flex-direction:column; gap:10px; pointer-events:auto; }
+  body.touch #tbtns { display:flex; }
+  .tb { width:46px; height:46px; border-radius:50%; border:0; background:var(--glass); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); color:var(--ink); font-size:20px; padding:0; }
+  .tb:active, #jump:active { transform:scale(.92); }
+  #jump { position:absolute; right:calc(28px + env(safe-area-inset-right)); bottom:36px; width:84px; height:84px; border-radius:50%; border:2px solid rgba(255,255,255,.4); background:rgba(20,26,48,.35); color:var(--ink); font:700 14px 'Quicksand','Padauk',sans-serif; display:none; pointer-events:auto; line-height:1.25; }
+  #jump.fly { background:rgba(120,200,255,.45); border-color:#bfe6ff; }
+  body.touch #jump { display:block; }
+  #joy { position:absolute; left:calc(40px + env(safe-area-inset-left)); bottom:40px; width:120px; height:120px; border-radius:50%; border:2px solid rgba(255,255,255,.35); background:rgba(255,255,255,.07); display:none; pointer-events:none; }
+  body.touch #joy { display:block; } #joy.active { background:rgba(255,255,255,.14); }
+  #joy .knob { position:absolute; left:33px; top:33px; width:54px; height:54px; border-radius:50%; background:rgba(255,255,255,.55); box-shadow:0 2px 10px rgba(0,0,0,.25); }
+  body.touch #help { display:none; }
+  body.touch #prompt { pointer-events:auto; bottom:140px; font-size:17px; padding:12px 22px; }
+  #hud { position:fixed; inset:0; pointer-events:none; transition:opacity .5s; opacity:0; }
+  body.playing #hud { opacity:1; }
+  body.hide-ui #hud { opacity:0; }
+  .pill { position:absolute; background:var(--glass); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); padding:8px 16px; border-radius:999px; font-weight:600; font-size:15px; letter-spacing:.3px; text-shadow:0 1px 2px rgba(0,0,0,.3); white-space:nowrap; }
+  #profile { top:18px; left:18px; padding:8px 16px 11px; border-radius:18px; overflow:hidden; }
+  #profile small { font-weight:400; opacity:.85; }
+  #xpbar { position:absolute; left:0; bottom:0; height:4px; width:100%; background:rgba(255,255,255,.15); }
+  #xpbar i { display:block; height:100%; width:0; background:linear-gradient(90deg,#ffe3a3,#ffc2d4); transition:width .6s; }
+  #stars { top:66px; left:18px; } #stars b, #count b { color:var(--gold); }
+  #count { top:110px; left:18px; }
+  #clock { top:18px; right:18px; }
+  #help { bottom:16px; right:16px; font-size:12px; font-weight:400; opacity:.75; border-radius:12px; }
+  #prompt { bottom:90px; left:50%; transform:translateX(-50%); opacity:0; transition:opacity .25s; }
+  #prompt.on { opacity:1; }
+  #powers { position:absolute; top:18px; left:50%; transform:translateX(-50%); display:flex; gap:8px; }
+  .pw { position:relative; background:rgba(20,26,48,.55); border-radius:999px; padding:7px 14px 9px; font-weight:700; font-size:14px; overflow:hidden; white-space:nowrap; }
+  .pw i { position:absolute; left:0; bottom:0; height:3px; background:var(--gold); }
+  kbd { background:rgba(255,255,255,.18); border-radius:6px; padding:1px 7px; font-family:inherit; }
+  #toast { position:absolute; top:22%; left:50%; transform:translate(-50%,10px); text-align:center; opacity:0; transition:opacity .8s, transform .8s; text-shadow:0 2px 12px rgba(0,0,0,.45); max-width:90vw; }
+  #toast.on { opacity:1; transform:translate(-50%,0); }
+  #toast .t0 { font-size:14px; letter-spacing:2px; color:var(--gold); }
+  #toast .t1 { font-size:32px; font-weight:700; margin:6px 0; }
+  #toast .t2 { font-size:17px; opacity:.92; }
+  #start { position:fixed; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:safe center; overflow-y:auto; text-align:center; padding:16px;
+    background:radial-gradient(ellipse at center, rgba(16,22,44,.15), rgba(16,22,44,.65)); transition:opacity 1.2s; }
+  #start.gone { opacity:0; pointer-events:none; }
+  #start h1 { font-size:clamp(38px,7vw,78px); margin:0; font-weight:700; letter-spacing:1px; text-shadow:0 4px 30px rgba(0,0,0,.4); }
+  #start .mm.big { font-size:clamp(18px,3vw,26px); margin:6px 0 10px; opacity:.9; }
+  #start .sub { font-size:18px; opacity:.88; margin:0 0 24px; }
+  #go { font:inherit; font-size:18px; font-weight:700; color:#2a2340; background:linear-gradient(135deg,#ffe3a3,#ffc2d4); border:0; padding:14px 38px; border-radius:999px; cursor:pointer; box-shadow:0 8px 30px rgba(255,190,160,.35); transition:transform .2s; }
+  #go:hover:not(:disabled) { transform:scale(1.05); }
+  #go:disabled { opacity:.7; cursor:wait; }
+  #dress { font:inherit; font-size:15px; font-weight:600; color:var(--ink); background:rgba(255,255,255,.14); border:1px solid rgba(255,255,255,.35); padding:10px 26px; border-radius:999px; cursor:pointer; margin-top:12px; }
+  #dress:disabled { opacity:.5; cursor:wait; }
+  #start .keys { margin-top:22px; font-size:14px; opacity:.85; line-height:1.9; }
+  .legend span { display:inline-block; margin:0 6px; white-space:nowrap; }
+  .dot { display:inline-block; width:11px; height:11px; border-radius:50%; margin-right:4px; vertical-align:middle; }
+  /* character creator */
+  #closet { position:fixed; top:16px; left:16px; bottom:16px; width:320px; max-width:calc(100vw - 32px); overflow-y:auto; background:rgba(20,26,48,.72); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px);
+    border-radius:20px; padding:18px 20px; box-sizing:border-box; transform:translateX(-110%); transition:transform .45s cubic-bezier(.2,.8,.2,1); z-index:5; }
+  #closet.on { transform:none; }
+  #closet h2 { margin:0 0 4px; font-size:22px; } #closet h2 .mm { font-size:15px; opacity:.75; font-weight:400; }
+  #closet label, #closet .lbl { display:block; font-size:12px; letter-spacing:1px; opacity:.75; margin:16px 0 7px; }
+  #closet input[type=text] { width:100%; box-sizing:border-box; font:inherit; font-size:16px; padding:9px 12px; border-radius:10px; border:1px solid rgba(255,255,255,.25); background:rgba(255,255,255,.08); color:var(--ink); }
+  .facebox { display:flex; gap:14px; align-items:center; }
+  #lk-face { width:96px; height:96px; border-radius:50%; background:rgba(255,255,255,.08); border:2px dashed rgba(255,255,255,.3); flex:none; }
+  .facebox .col { display:flex; flex-direction:column; gap:8px; }
+  .btn { font:inherit; font-size:14px; font-weight:600; color:var(--ink); background:rgba(255,255,255,.12); border:1px solid rgba(255,255,255,.25); border-radius:10px; padding:7px 14px; cursor:pointer; }
+  .btn:hover { background:rgba(255,255,255,.22); }
+  .btn.sel { background:linear-gradient(135deg,#ffe3a3,#ffc2d4); color:#2a2340; border-color:transparent; }
+  .btn.locked { opacity:.55; }
+  .slider { display:grid; grid-template-columns:70px 1fr; align-items:center; font-size:13px; opacity:.9; margin-top:6px; }
+  .slider input { width:100%; accent-color:#ffc2d4; }
+  #lk-adjust.off { display:none; }
+  .tip { font-size:12px; opacity:.7; margin:8px 0 0; line-height:1.5; }
+  .opts { display:flex; flex-wrap:wrap; gap:6px; }
+  .sw { display:flex; flex-wrap:wrap; gap:7px; }
+  .sw button { width:28px; height:28px; border-radius:50%; border:2px solid rgba(255,255,255,.25); cursor:pointer; padding:0; }
+  .sw button.sel { border-color:#fff; box-shadow:0 0 0 3px rgba(255,217,138,.8); }
+  .check { display:flex !important; align-items:center; gap:8px; letter-spacing:0 !important; font-size:15px !important; opacity:1 !important; cursor:pointer; }
+  #lk-done { width:100%; margin-top:22px; font:inherit; font-size:17px; font-weight:700; color:#2a2340; background:linear-gradient(135deg,#ffe3a3,#ffc2d4); border:0; padding:12px; border-radius:999px; cursor:pointer; }
+  /* quiz */
+  #quiz { position:fixed; inset:0; display:flex; align-items:center; justify-content:center; background:rgba(10,14,30,.45); opacity:0; pointer-events:none; transition:opacity .3s; z-index:8; padding:12px; box-sizing:border-box; }
+  #quiz.on { opacity:1; pointer-events:auto; }
+  #quiz .card { width:min(470px,100%); max-height:100%; overflow-y:auto; box-sizing:border-box; background:linear-gradient(160deg,rgba(44,52,98,.96),rgba(26,32,64,.96)); border-radius:24px; padding:18px 20px; text-align:center; box-shadow:0 20px 60px rgba(0,0,0,.45); border:1px solid rgba(255,255,255,.15); transform:scale(.9); transition:transform .3s; }
+  #quiz.on .card { transform:none; }
+  #q-subject { display:inline-block; padding:5px 14px; border-radius:999px; font-size:14px; font-weight:700; color:#1e2240; }
+  #q-pic { font-size:84px; line-height:1.15; margin:8px 0 2px; }
+  #q-pic:empty { display:none; }
+  #q-pic .swatch { display:inline-block; width:88px; height:88px; border-radius:50%; border:4px solid rgba(255,255,255,.75); vertical-align:middle; }
+  #q-text { font-size:25px; font-weight:700; margin:6px 0 4px; }
+  #q-sub { font-size:17px; opacity:.9; margin-bottom:14px; line-height:1.6; }
+  #q-opts { display:flex; flex-direction:column; gap:9px; }
+  .qo { display:flex; align-items:center; gap:12px; font:inherit; font-size:20px; font-weight:700; color:var(--ink); background:rgba(255,255,255,.1); border:2px solid rgba(255,255,255,.22); border-radius:16px; padding:10px 14px; cursor:pointer; text-align:left; transition:background .2s, transform .1s; }
+  .qo:hover:not(:disabled) { background:rgba(255,255,255,.2); } .qo:active { transform:scale(.97); }
+  .qo > b { flex:none; width:34px; height:34px; border-radius:50%; background:rgba(255,255,255,.2); display:grid; place-items:center; font-size:17px; }
+  .qo small { display:block; font-size:15px; font-weight:400; opacity:.85; }
+  .qo .emo { font-size:40px; line-height:1; }
+  .qo.right { background:#39b877; border-color:#9ff2c4; }
+  .qo.wrong { background:rgba(255,90,90,.3); border-color:#ff9a9a; animation:shake .4s; opacity:.6; }
+  @keyframes shake { 20%,60% { transform:translateX(-6px); } 40%,80% { transform:translateX(6px); } }
+  #q-msg { min-height:26px; margin-top:12px; font-size:18px; font-weight:700; line-height:1.5; }
+  #q-msg .rw { display:block; margin-top:6px; color:var(--gold); }
+  #q-later { margin-top:6px; font:inherit; font-size:14px; color:var(--ink); opacity:.7; background:none; border:0; cursor:pointer; text-decoration:underline; }
+  #fade { position:fixed; inset:0; background:#0d1224; opacity:0; pointer-events:none; transition:opacity .6s; z-index:9; display:flex; align-items:center; justify-content:center; font-size:24px; font-weight:700; text-align:center; padding:20px; }
+  #fade.on { opacity:1; pointer-events:auto; }
+  @media (max-width:700px) {
+    #closet { top:auto; left:8px; right:8px; bottom:8px; width:auto; max-width:none; height:52vh; transform:translateY(110%); }
+    #closet.on { transform:none; }
+    #toast .t1 { font-size:24px; } #toast .t2 { font-size:15px; }
+    .pill { font-size:13px; padding:7px 13px; } #stars { top:60px; } #count { top:98px; }
+    #powers { top:140px; left:18px; transform:none; flex-direction:column; align-items:flex-start; }
+  }
+  @media (max-height:500px) {
+    #start h1 { font-size:34px; } #start .mm.big { font-size:16px; margin:2px 0 4px; } #start .sub { margin-bottom:12px; font-size:15px; }
+    #go { padding:10px 30px; font-size:16px; } #start .keys { margin-top:10px; font-size:13px; line-height:1.6; }
+    #toast { top:14%; } #toast .t1 { font-size:24px; }
+    .tb { width:40px; height:40px; font-size:17px; } #tbtns { top:56px; gap:8px; }
+    #q-pic { font-size:50px; margin:4px 0 0; } #q-pic .swatch { width:54px; height:54px; }
+    #q-text { font-size:20px; margin:2px 0; } #q-sub { font-size:15px; margin-bottom:8px; }
+    #q-opts { flex-direction:row; } .qo { flex:1; flex-direction:column; text-align:center; gap:4px; font-size:17px; padding:8px; }
+    .qo > b { width:26px; height:26px; font-size:14px; } .qo .emo { font-size:32px; }
+    #q-msg { margin-top:6px; font-size:16px; } #quiz .card { padding:12px 16px; }
+  }
+</style>
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+} }
+</script>
+</head>
+<body>
+<div id="hud">
+  <div id="profile" class="pill"><span id="ptxt">🌱 Lv 1 · Beginner</span><div id="xpbar"><i></i></div></div>
+  <div id="stars" class="pill">⭐ <b id="snum">0</b> <span class="mm">ကြယ်</span></div>
+  <div id="count" class="pill">✦ <b id="cnum">0</b>/12 <span class="mm">ရတနာ</span></div>
+  <div id="clock" class="pill">06:00</div>
+  <div id="powers"></div>
+  <div id="prompt" class="pill"><span class="desk-only"><kbd>E</kbd> နှိပ်ပြီး သေတ္တာဖွင့်ပါ · Open chest</span><span class="touch-only">✦ ရတနာသေတ္တာ ဖွင့်မယ် · Open</span></div>
+  <div id="tbtns">
+    <button class="tb" id="tb-dress" aria-label="Character">👗</button>
+    <button class="tb" id="tb-music" aria-label="Music">♪</button>
+    <button class="tb" id="tb-time" aria-label="Hold to speed up time">⏩</button>
+  </div>
+  <div id="joy"><div class="knob"></div></div>
+  <button id="jump">Jump<br>ခုန်</button>
+  <div id="toast"><div class="t0"></div><div class="t1"></div><div class="t2"></div></div>
+  <div id="help" class="pill">WASD move · Shift run · Space jump/fly · E open · C character · M music · H hide UI · scroll zoom</div>
+</div>
+
+<div id="quiz"><div class="card">
+  <div id="q-subject"></div>
+  <div id="q-pic"></div>
+  <div id="q-text"></div>
+  <div id="q-sub" class="mm"></div>
+  <div id="q-opts"></div>
+  <div id="q-msg"></div>
+  <button id="q-later">နောက်မှဖြေမယ် · Later</button>
+</div></div>
+
+<div id="fade"><div id="fade-txt"></div></div>
+
+<div id="closet">
+  <h2>Your traveler <span class="mm">· ခရီးသည်</span></h2>
+  <label for="lk-name">Name · နာမည်</label>
+  <input type="text" id="lk-name" maxlength="20" placeholder="e.g. Su Su" autocomplete="off">
+  <div class="lbl">Face photo · မျက်နှာပုံ 📷</div>
+  <div class="facebox">
+    <canvas id="lk-face" width="256" height="256"></canvas>
+    <div class="col">
+      <button class="btn" id="lk-upload">Upload photo · ပုံထည့်</button>
+      <button class="btn" id="lk-clear">Remove · ဖျက်</button>
+      <input type="file" id="lk-file" accept="image/*" hidden>
+    </div>
+  </div>
+  <div id="lk-adjust">
+    <div class="slider">Zoom <input type="range" id="lk-zoom" min="1" max="4" step="0.01"></div>
+    <div class="slider">↔ Move <input type="range" id="lk-ox" min="-1" max="1" step="0.01"></div>
+    <div class="slider">↕ Move <input type="range" id="lk-oy" min="-1" max="1" step="0.01"></div>
+  </div>
+  <p class="tip">Use a front-facing photo and zoom until the face fills the circle. The photo stays on this device only.<br><span class="mm">မျက်နှာ စက်ဝိုင်းထဲ အပြည့်ဝင်အောင် zoom လုပ်ပါ။ ပုံက ဒီဖုန်း/ကွန်ပျူတာထဲမှာပဲ ရှိမယ်။</span></p>
+  <label class="check"><input type="checkbox" id="lk-big"> Big cute head · ခေါင်းကြီးလေး</label>
+  <div class="lbl">Hair style · ဆံပင်</div><div class="opts" data-k="hair"></div>
+  <div class="lbl">Hair color · ဆံပင်အရောင်</div><div class="sw" data-k="hairColor"></div>
+  <div class="lbl">Skin tone · အသားအရောင်</div><div class="sw" data-k="skin"></div>
+  <div class="lbl">Outfit · အဝတ်အစား</div><div class="sw" data-k="outfit"></div>
+  <div class="lbl">Scarf · ပုဝါ</div><div class="sw" data-k="scarf"></div>
+  <div class="lbl">Backpack · ကျောပိုးအိတ်</div><div class="sw" data-k="bag"></div>
+  <div class="lbl">Hat · ဦးထုပ် (⭐ ကြယ်စုပြီး ဖွင့်ပါ)</div><div class="opts" data-k="hat"></div>
+  <button id="lk-done">Done · ပြီးပြီ ✓</button>
+</div>
+
+<div id="start">
+  <h1>The Quiet Kingdom</h1>
+  <div class="mm big">ငြိမ်သက်သော နိုင်ငံတော်</div>
+  <p class="sub">Wander, explore &amp; learn · <span class="mm">လမ်းလျှောက်၊ စူးစမ်း၊ သင်ယူ</span></p>
+  <button id="go" disabled>Growing the world… · ကမ္ဘာဖန်တီးနေတယ်…</button>
+  <button id="dress" disabled>✎ Create character · ဇာတ်ကောင်ဖန်တီးမယ်</button>
+  <div class="keys">
+    <div class="legend">💎 <span class="mm">အလင်းကျောက်လေးတွေဆီသွားပြီး မေးခွန်းဖြေ၊ ဆုယူပါ!</span><br>
+      <span><i class="dot" style="background:#6ec8ff"></i>Math · သင်္ချာ</span>
+      <span><i class="dot" style="background:#7cf0a0"></i>Animals · တိရစ္ဆာန်</span>
+      <span><i class="dot" style="background:#ff9ad5"></i>English · အင်္ဂလိပ်</span>
+      <span><i class="dot" style="background:#ffd36e"></i>Did you know? · ဗဟုသုတ</span></div>
+    <div class="touch-only">👈 ဘယ်လက်မ - လမ်းလျှောက် · walk &nbsp; 👉 ညာလက်မ - ကြည့် · look &nbsp; ✌ zoom</div>
+    <div class="desk-only"><kbd>WASD</kbd> walk &nbsp; <kbd>Shift</kbd> run &nbsp; <kbd>Space</kbd> jump / fly &nbsp; <kbd>Mouse</kbd> look &nbsp; <kbd>E</kbd> open &nbsp; <kbd>C</kbd> character &nbsp; <kbd>M</kbd> music</div>
+  </div>
+</div>
+
+<script type="module">
+import * as THREE from 'three';
+import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
+
+/* ============ seeded random + noise ============ */
+let seed = 20260927;
+const rand = () => (seed = (seed * 16807) % 2147483647, (seed - 1) / 2147483646);
+const perm = new Uint8Array(512);
+{ const p = [...Array(256).keys()]; for (let i = 255; i > 0; i--) { const j = Math.floor(rand() * (i + 1)); [p[i], p[j]] = [p[j], p[i]]; } for (let i = 0; i < 512; i++) perm[i] = p[i & 255]; }
+const fade = t => t * t * t * (t * (t * 6 - 15) + 10);
+const lerp = (a, b, t) => a + (b - a) * t;
+function grad(h, x, y) { switch (h & 3) { case 0: return x + y; case 1: return -x + y; case 2: return x - y; default: return -x - y; } }
+function noise(x, y) {
+  const X = Math.floor(x) & 255, Y = Math.floor(y) & 255; x -= Math.floor(x); y -= Math.floor(y);
+  const u = fade(x), v = fade(y), a = perm[X] + Y, b = perm[X + 1] + Y;
+  return lerp(lerp(grad(perm[a], x, y), grad(perm[b], x - 1, y), u), lerp(grad(perm[a + 1], x, y - 1), grad(perm[b + 1], x - 1, y - 1), u), v);
+}
+function fbm(x, y, o = 5) { let s = 0, a = 1, f = 1, n = 0; for (let i = 0; i < o; i++) { s += a * noise(x * f, y * f); n += a; a *= .5; f *= 2; } return s / n; }
+const smooth = (a, b, x) => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
+const pick = a => a[Math.floor(Math.random() * a.length)];
+const shuffle = a => { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const $ = id => document.getElementById(id);
+
+/* ============ renderer / scene ============ */
+// phones & tablets get touch controls and a lighter world so they stay smooth
+const TOUCH = /[?&]touch=1/.test(location.search) || matchMedia('(pointer: coarse)').matches || navigator.maxTouchPoints > 1 && !matchMedia('(pointer: fine)').matches;
+if (TOUCH) document.body.classList.add('touch');
+const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
+renderer.setPixelRatio(Math.min(devicePixelRatio, TOUCH ? 1.3 : 1.75));
+renderer.setSize(innerWidth, innerHeight);
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.2;
+document.body.prepend(renderer.domElement);
+const canvas = renderer.domElement;
+
+const scene = new THREE.Scene();
+scene.fog = new THREE.Fog(0xc4e2f4, 80, 560);
+const camera = new THREE.PerspectiveCamera(60, innerWidth / innerHeight, 0.1, 3000);
+const U = { time: { value: 0 } };
+const world = new THREE.Group(); scene.add(world); // everything that belongs to the current map
+
+addEventListener('resize', () => { camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); renderer.setSize(innerWidth, innerHeight); });
+
+/* ============ terrain ============ */
+const SIZE = 800, SEG = 240, HALF = SIZE / 2, CELL = SIZE / SEG, ROW = SEG + 1;
+const hgrid = new Float32Array(ROW * ROW);
+function getHeight(x, z) {
+  const fx = (x + HALF) / CELL, fz = (z + HALF) / CELL;
+  if (fx < 0 || fz < 0 || fx >= SEG || fz >= SEG) return -20;
+  const ix = Math.floor(fx), iz = Math.floor(fz), tx = fx - ix, tz = fz - iz;
+  const ha = hgrid[iz * ROW + ix], hb = hgrid[(iz + 1) * ROW + ix], hc = hgrid[(iz + 1) * ROW + ix + 1], hd = hgrid[iz * ROW + ix + 1];
+  return tx + tz <= 1 ? ha + (hd - ha) * tx + (hb - ha) * tz : hc + (hb - hc) * (1 - tx) + (hd - hc) * (1 - tz);
+}
+function slopeAt(x, z) { const e = 1.5; return Math.hypot(getHeight(x + e, z) - getHeight(x - e, z), getHeight(x, z + e) - getHeight(x, z - e)) / (2 * e); }
+// walkable boxes (temple tiers and stairs) on top of the terrain
+let platforms = [];
+function groundAt(x, z) { let h = getHeight(x, z); for (const p of platforms) if (x > p.x0 && x < p.x1 && z > p.z0 && z < p.z1 && p.top > h) h = p.top; return h; }
+
+function kingdomHeight(x, z) {
+  const d = Math.hypot(x, z) / HALF;
+  const warp = fbm(x * .002 + 30, z * .002 - 12, 2) * .3;
+  const island = 1 - smooth(.55, .95, d + warp);
+  let h = fbm(x * .0035, z * .0035, 5) * 38 + 10;
+  const m = Math.max(0, fbm(x * .0022 + 80, z * .0022 - 40, 5) - .05);
+  h += Math.pow(m, 1.3) * 190;
+  h = h * island - 18 * (1 - island);
+  h += 6 * Math.exp(-d * d * 30);
+  return h;
+}
+const VX = -70, VZ = -80; // jungle volcano
+function jungleHeight(x, z) {
+  const d = Math.hypot(x, z) / HALF;
+  const warp = fbm(x * .0025 - 70, z * .0025 + 33, 2) * .35;
+  const island = 1 - smooth(.5, .92, d + warp);
+  let h = fbm(x * .004 + 300, z * .004 - 200, 5) * 26 + 8;
+  const vd = Math.hypot(x - VX, z - VZ);
+  h += 80 * Math.pow(Math.max(0, 1 - vd / 115), 1.6);
+  h -= 24 * Math.pow(Math.max(0, 1 - vd / 16), 1.2);
+  h = h * island - 16 * (1 - island);
+  return h;
+}
+
+/* ============ helpers ============ */
+const mat = (c, o = {}) => new THREE.MeshStandardMaterial({ color: c, flatShading: true, roughness: .85, ...o });
+function colored(geo, hex) {
+  if (geo.index) geo = geo.toNonIndexed();
+  const c = new THREE.Color(hex), n = geo.attributes.position.count, a = new Float32Array(n * 3);
+  for (let i = 0; i < n; i++) { a[i * 3] = c.r; a[i * 3 + 1] = c.g; a[i * 3 + 2] = c.b; }
+  geo.setAttribute('color', new THREE.BufferAttribute(a, 3));
+  return geo;
+}
+function addWind(m, strength) {
+  m.onBeforeCompile = s => {
+    s.uniforms.uTime = U.time;
+    s.vertexShader = 'uniform float uTime;\n' + s.vertexShader.replace('#include <begin_vertex>', `#include <begin_vertex>
+      #ifdef USE_INSTANCING
+        vec3 ip = vec3(instanceMatrix[3][0], instanceMatrix[3][1], instanceMatrix[3][2]);
+      #else
+        vec3 ip = vec3(0.0);
+      #endif
+      float sway = sin(uTime*1.6 + ip.x*.15 + ip.z*.12) + .5*sin(uTime*2.7 + ip.x*.3 + ip.z*.2);
+      float k = max(position.y, 0.0) * ${strength.toFixed(4)};
+      transformed.x += sway * k; transformed.z += sway * k * .5;`);
+  };
+  m.customProgramCacheKey = () => 'wind' + strength;
+  return m;
+}
+const colliders = new Map(), CS = 10;
+function addCollider(x, z, r) { const k = Math.floor(x / CS) + ',' + Math.floor(z / CS); if (!colliders.has(k)) colliders.set(k, []); colliders.get(k).push({ x, z, r }); }
+const dummy = new THREE.Object3D();
+function beamMaterial(color, strength = .32) {
+  return new THREE.ShaderMaterial({
+    uniforms: { uTime: U.time, uColor: { value: new THREE.Color(color) }, uStrength: { value: 1 } },
+    vertexShader: `varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix*modelViewMatrix*vec4(position,1.0); }`,
+    fragmentShader: `uniform float uTime; uniform vec3 uColor; uniform float uStrength; varying vec2 vUv;
+      void main(){ float a = pow(1.0 - vUv.y, 1.8) * ${strength.toFixed(3)} * uStrength * (.75 + .25*sin(uTime*2.0 - vUv.y*14.0)); gl_FragColor = vec4(uColor, a); }`,
+    transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide, fog: false
+  });
+}
+function textSprite(text, w = 512, h = 128, font = 54) {
+  const c = document.createElement('canvas'); c.width = w; c.height = h; const x = c.getContext('2d');
+  x.font = `700 ${font}px Quicksand, Padauk, 'Myanmar Text', sans-serif`; x.textAlign = 'center'; x.textBaseline = 'middle';
+  x.fillStyle = 'rgba(20,26,48,.55)'; const tw = Math.min(w - 8, x.measureText(text).width + 60);
+  x.beginPath(); if (x.roundRect) x.roundRect((w - tw) / 2, 8, tw, h - 16, (h - 16) / 2); else x.rect((w - tw) / 2, 8, tw, h - 16); x.fill();
+  x.fillStyle = '#fffaf0'; x.fillText(text, w / 2, h / 2 + 2);
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace;
+  const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: t, depthWrite: false })); s.userData.ownTex = true; return s;
+}
+const emojiTexCache = {};
+function emojiSprite(e) {
+  if (!emojiTexCache[e]) { const c = document.createElement('canvas'); c.width = c.height = 128; const x = c.getContext('2d'); x.font = '96px serif'; x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillText(e, 64, 72);
+    emojiTexCache[e] = new THREE.CanvasTexture(c); emojiTexCache[e].colorSpace = THREE.SRGBColorSpace; }
+  return new THREE.Sprite(new THREE.SpriteMaterial({ map: emojiTexCache[e], depthWrite: false }));
+}
+
+/* ============ sky ============ */
+const skyMat = new THREE.ShaderMaterial({
+  uniforms: { top: { value: new THREE.Color() }, bottom: { value: new THREE.Color() }, sunDir: { value: new THREE.Vector3(0, 1, 0) }, sunColor: { value: new THREE.Color() }, night: { value: 0 } },
+  vertexShader: `varying vec3 vDir; void main(){ vDir = position; gl_Position = projectionMatrix*modelViewMatrix*vec4(position,1.0); }`,
+  fragmentShader: `uniform vec3 top; uniform vec3 bottom; uniform vec3 sunDir; uniform vec3 sunColor; uniform float night; varying vec3 vDir;
+    void main(){ vec3 d = normalize(vDir);
+      vec3 col = mix(bottom, top, smoothstep(-0.05, 0.55, d.y));
+      float s = max(dot(d, sunDir), 0.0);
+      col += sunColor * (pow(s, 900.0) * 3.0 + pow(s, 12.0) * 0.35);
+      float m = max(dot(d, -sunDir), 0.0);
+      col += vec3(0.95,0.97,1.0) * (smoothstep(0.9994, 0.9997, m) * 1.4 + pow(m, 60.0) * 0.12) * night;
+      gl_FragColor = vec4(col, 1.0);
+      #include <tonemapping_fragment>
+      #include <colorspace_fragment>
+    }`,
+  side: THREE.BackSide, depthWrite: false
+});
+const sky = new THREE.Mesh(new THREE.SphereGeometry(1400, 32, 16), skyMat);
+sky.renderOrder = -1; scene.add(sky);
+
+const glowTex = (() => { const c = document.createElement('canvas'); c.width = c.height = 64; const x = c.getContext('2d'); const g = x.createRadialGradient(32, 32, 0, 32, 32, 32); g.addColorStop(0, 'rgba(255,255,255,1)'); g.addColorStop(.25, 'rgba(255,255,255,.55)'); g.addColorStop(1, 'rgba(255,255,255,0)'); x.fillStyle = g; x.fillRect(0, 0, 64, 64); return new THREE.CanvasTexture(c); })();
+const starGeo = new THREE.BufferGeometry(); { const a = []; for (let i = 0; i < 1500; i++) { const th = rand() * Math.PI * 2, y = rand() * .95 + .05, r = Math.sqrt(1 - y * y); a.push(Math.cos(th) * r * 1300, y * 1300, Math.sin(th) * r * 1300); } starGeo.setAttribute('position', new THREE.Float32BufferAttribute(a, 3)); }
+const starMat = new THREE.PointsMaterial({ size: 2.2, sizeAttenuation: false, color: 0xffffff, transparent: true, opacity: 0, fog: false, map: glowTex, depthWrite: false });
+const stars = new THREE.Points(starGeo, starMat); scene.add(stars);
+
+/* ============ lights ============ */
+const hemi = new THREE.HemisphereLight(0xcfe6ff, 0x6b7a48, .9); scene.add(hemi);
+const sun = new THREE.DirectionalLight(0xfff1d6, 2.2);
+sun.castShadow = true; sun.shadow.mapSize.setScalar(TOUCH ? 1024 : 2048);
+Object.assign(sun.shadow.camera, { left: -70, right: 70, top: 70, bottom: -70, near: 1, far: 300 });
+sun.shadow.bias = -.0004; sun.shadow.normalBias = .06;
+scene.add(sun, sun.target);
+const burstLight = new THREE.PointLight(0xffd27a, 0, 14, 1.5); scene.add(burstLight);
+
+/* ============ maps ============ */
+const K_COL = { sand: 0xecd9a6, wetSand: 0xc9b387, grassL: 0x96c85e, grassD: 0x5f9e4a, meadow: 0xc2cf5c, rock: 0x9c9386, snow: 0xf4f7fb, alpine: 0x7d8f66 };
+const J_COL = { sand: 0xf5e6b8, wetSand: 0xd8c08e, grassL: 0x6cc24a, grassD: 0x2f8a3c, moss: 0x9ccc4a, rock: 0x6f6660, ash: 0x7d726c, crater: 0x3e302c };
+for (const P of [K_COL, J_COL]) for (const k in P) P[k] = new THREE.Color(P[k]);
+function kingdomColor(h, ny, cx, cz, c) {
+  const C = K_COL;
+  if (h < -1) c.copy(C.wetSand);
+  else if (h < 1.3) c.copy(C.sand);
+  else if (h < 2.4) c.copy(C.sand).lerp(C.grassL, (h - 1.3) / 1.1);
+  else if (h > 62 && ny > .55) c.copy(C.snow);
+  else if (ny < .72 || h > 58) c.copy(C.rock);
+  else if (h > 42) c.copy(C.alpine).lerp(C.rock, smooth(42, 58, h) * .6);
+  else {
+    c.copy(C.grassD).lerp(C.grassL, smooth(-.3, .3, fbm(cx * .02 + 5, cz * .02, 3)));
+    c.lerp(C.meadow, smooth(.15, .45, fbm(cx * .01 - 40, cz * .01 + 9, 2)) * .6);
+    if (ny < .82) c.lerp(C.rock, .35);
+  }
+}
+function jungleColor(h, ny, cx, cz, c) {
+  const C = J_COL, vd = Math.hypot(cx - VX, cz - VZ);
+  if (h < -1) c.copy(C.wetSand);
+  else if (h < 2.2) c.copy(C.sand);
+  else if (h < 3.4) c.copy(C.sand).lerp(C.grassL, (h - 2.2) / 1.2);
+  else if (vd < 22 && h > 45) c.copy(C.crater);
+  else if (vd < 115 && h > 36) c.copy(C.ash).lerp(C.rock, smooth(36, 70, h) * .6);
+  else if (ny < .7) c.copy(C.rock);
+  else {
+    c.copy(C.grassD).lerp(C.grassL, smooth(-.3, .3, fbm(cx * .02 + 9, cz * .02, 3)));
+    c.lerp(C.moss, smooth(.1, .4, fbm(cx * .012, cz * .012 - 5, 2)) * .5);
+    if (ny < .8) c.lerp(C.rock, .3);
+  }
+}
+
+const T_KINGDOM = [
+  ['Cloudwool Scarf', 'တိမ်လို ပျော့ပျောင်းတဲ့ ပုဝါ'],
+  ['Feather of the West Wind', 'လေအမွေး — ခုန်တာ ပိုမြင့်လာပြီ! You jump higher now.'],
+  ['Moonpetal Locket', 'လရောင်ပန်း ဆွဲကြိုး'],
+  ["Traveler's Boots", 'ခရီးသွားဖိနပ် — ပိုမြန်မြန် ပြေးနိုင်ပြီ! You run faster now.'],
+  ['Star-glass Marble', 'ကြယ်ဖန် ဂေါ်လီလုံး'],
+  ['Old Lullaby Scroll', 'ပုခက်တွင်းသီချင်း စာလိပ်'],
+  ['Amber Teacup', 'ပယင်း လက်ဖက်ရည်ခွက်'],
+  ['Sleeping Fox Figurine', 'အိပ်နေတဲ့ မြေခွေးရုပ်လေး'],
+  ['Lantern of Fireflies', 'ပိုးစုန်းကြူး မီးအိမ်'],
+  ["Queen's Silver Comb", 'မိဖုရားရဲ့ ငွေဘီး'],
+  ['Sunstone Compass', 'နေကျောက် သံလိုက်အိမ်မြှောင်'],
+  ['Crown of Wildflowers', 'တောပန်း သရဖူ — နောက်ဆုံးရတနာ! The last treasure!']
+];
+const T_JUNGLE = [
+  ['Parrot Feather', 'ကြက်တူရွေး အမွေး'],
+  ['Golden Coconut', 'ရွှေအုန်းသီး'],
+  ["Monkey's Lost Banana", 'မျောက်လေး ပျောက်သွားတဲ့ ငှက်ပျောသီး'],
+  ['Tiny Turtle Shell', 'လိပ်ခွံလေး'],
+  ['Volcano Stone', 'မီးတောင် ကျောက်တုံး'],
+  ['Jungle Drum', 'တော ဗုံလေး'],
+  ['Rainbow Seashell', 'သက်တံရောင် ခရုခွံ'],
+  ["Explorer's Map", 'စူးစမ်းသူရဲ့ မြေပုံ'],
+  ['Glowing Mushroom', 'အလင်းထွက်တဲ့ မှိုလေး'],
+  ['Jade Frog Statue', 'ကျောက်စိမ်း ဖားရုပ်'],
+  ['Sun Temple Key', 'နေဘုရားကျောင်း သော့'],
+  ['Heart of the Island', 'ကျွန်းရဲ့ နှလုံးသား — နောက်ဆုံးရတနာ! The last treasure!']
+];
+const MAPS = {
+  kingdom: { id: 'kingdom', icon: '🏰', name: 'The Quiet Kingdom', mm: 'ငြိမ်သက်သော နိုင်ငံတော်', seed: 20260927, height: kingdomHeight, color: kingdomColor,
+    water: 0x58b7cc, spawnFrom: [0, 0], spawnMaxH: 22, clearing: 9, site: { r0: 80, r1: 230, h0: 14, h1: 45 }, treasures: T_KINGDOM, portalTo: 'jungle', portalColor: 0x7dffb0,
+    rock: 0xa39c90, grass: [0x4f8a3a, 0xc4df72], flowers: [0xffffff, 0xffe066, 0xf7a1c4, 0xb9a4f5, 0xff9a76, 0x9ad0ff], birds: [0xffffff, 0xe8e4dc, 0xcfd8e0] },
+  jungle: { id: 'jungle', icon: '🌴', name: 'Jungle Island', mm: 'တောကျွန်း', seed: 777123, height: jungleHeight, color: jungleColor,
+    water: 0x35cfc4, spawnFrom: [150, 170], spawnMaxH: 7, clearing: 22, site: { r0: 60, r1: 200, h0: 5, h1: 26 }, treasures: T_JUNGLE, portalTo: 'kingdom', portalColor: 0xc3a4ff,
+    rock: 0x7a716a, grass: [0x2f6e2c, 0x86c84c], flowers: [0xff5a7a, 0xffa53d, 0xffe14d, 0xd46bff, 0xff7ad9], birds: [0xff4d4d, 0x3d8bff, 0xffd23d, 0x3dd26b] }
+};
+
+/* ============ world state (rebuilt when changing maps) ============ */
+let mapId = 'kingdom', spawn = new THREE.Vector3(), player;
+const W = { chests: [], stones: [], crystals: [], flags: [], birds: [], portal: null, smoke: null, lava: null, sites: [] };
+function clearWorld() {
+  world.traverse(o => {
+    if (o.geometry) o.geometry.dispose();
+    if (o.material) for (const m of [].concat(o.material)) { if (o.userData.ownTex && m.map) m.map.dispose(); m.dispose(); }
+  });
+  world.clear(); colliders.clear(); platforms = [];
+  Object.assign(W, { chests: [], stones: [], crystals: [], flags: [], birds: [], portal: null, smoke: null, lava: null, sites: [] });
+}
+
+function buildWorld(id) {
+  clearWorld();
+  const M = MAPS[id]; mapId = id; seed = M.seed;
+  for (let iz = 0; iz <= SEG; iz++) for (let ix = 0; ix <= SEG; ix++) hgrid[iz * ROW + ix] = M.height(-HALF + ix * CELL, -HALF + iz * CELL);
+
+  // terrain mesh
+  const g = new THREE.PlaneGeometry(SIZE, SIZE, SEG, SEG); g.rotateX(-Math.PI / 2);
+  for (let i = 0; i < g.attributes.position.count; i++) g.attributes.position.setY(i, hgrid[i]);
+  const tg = g.toNonIndexed(); g.dispose();
+  const p = tg.attributes.position, cols = new Float32Array(p.count * 3);
+  const A = new THREE.Vector3(), B = new THREE.Vector3(), C = new THREE.Vector3(), c = new THREE.Color();
+  for (let i = 0; i < p.count; i += 3) {
+    A.fromBufferAttribute(p, i); B.fromBufferAttribute(p, i + 1); C.fromBufferAttribute(p, i + 2);
+    const h = (A.y + B.y + C.y) / 3, cx = (A.x + B.x + C.x) / 3, cz = (A.z + B.z + C.z) / 3;
+    B.sub(A); C.sub(A); B.cross(C).normalize();
+    M.color(h, Math.abs(B.y), cx, cz, c);
+    c.offsetHSL(0, 0, (rand() - .5) * .03);
+    for (let k = 0; k < 3; k++) { cols[(i + k) * 3] = c.r; cols[(i + k) * 3 + 1] = c.g; cols[(i + k) * 3 + 2] = c.b; }
+  }
+  tg.setAttribute('color', new THREE.BufferAttribute(cols, 3)); tg.computeVertexNormals();
+  const terrain = new THREE.Mesh(tg, new THREE.MeshStandardMaterial({ vertexColors: true, flatShading: true, roughness: .95 }));
+  terrain.receiveShadow = true; world.add(terrain);
+
+  // water
+  const waterMat = new THREE.MeshStandardMaterial({ color: M.water, transparent: true, opacity: .78, roughness: .12, metalness: .1, flatShading: true });
+  waterMat.onBeforeCompile = s => {
+    s.uniforms.uTime = U.time;
+    s.vertexShader = 'uniform float uTime;\n' + s.vertexShader.replace('#include <begin_vertex>', `#include <begin_vertex>
+      vec4 wp = modelMatrix * vec4(position, 1.0);
+      transformed.z += (sin(wp.x*.08 + uTime*1.1) + cos(wp.z*.07 + uTime*.9)) * .22;`);
+  };
+  const water = new THREE.Mesh(new THREE.PlaneGeometry(3000, 3000, TOUCH ? 150 : 240, TOUCH ? 150 : 240), waterMat);
+  water.rotation.x = -Math.PI / 2; water.position.y = .1; world.add(water);
+
+  // spawn: nearest comfy flat spot to the map's starting point
+  const [sx0, sz0] = M.spawnFrom; spawn.set(sx0, getHeight(sx0, sz0), sz0);
+  outer: for (let r = 0; r < 220; r += 2) for (let a = 0; a < 12; a++) {
+    const x = sx0 + Math.cos(a) * r, z = sz0 + Math.sin(a) * r, h = getHeight(x, z);
+    if (h > 3 && h < M.spawnMaxH && slopeAt(x, z) < .4) { spawn.set(x, h, z); break outer; }
+  }
+
+  // landmark site (castle or temple) on the flattest spot in range
+  let best = null, bestR = 1e9;
+  for (let i = 0; i < 700; i++) {
+    const a = rand() * Math.PI * 2, r = M.site.r0 + rand() * (M.site.r1 - M.site.r0), x = spawn.x * .2 + Math.cos(a) * r, z = spawn.z * .2 + Math.sin(a) * r, h = getHeight(x, z);
+    if (h < M.site.h0 || h > M.site.h1 || Math.hypot(x - spawn.x, z - spawn.z) < 50) continue;
+    let mn = 1e9, mx = -1e9; for (let k = 0; k < 12; k++) { const hh = getHeight(x + Math.cos(k / 12 * 6.28) * 17, z + Math.sin(k / 12 * 6.28) * 17); mn = Math.min(mn, hh); mx = Math.max(mx, hh); }
+    if (mx - mn < bestR) { bestR = mx - mn; best = [x, z]; }
+  }
+  const site = best || [120, 0];
+  W.sites.push({ x: site[0], z: site[1], r: 24 });
+  const spots = id === 'kingdom' ? buildCastle(site[0], site[1]) : buildTemple(site[0], site[1]);
+
+  // chests: landmark, summit, then scattered
+  let top = 0; for (let i = 1; i < hgrid.length; i++) if (hgrid[i] > hgrid[top]) top = i;
+  let tx = -HALF + (top % ROW) * CELL + 2, tz = -HALF + Math.floor(top / ROW) * CELL + 2;
+  if (id === 'jungle') { tx = VX + 19; tz = VZ; } // volcano rim instead of the lava
+  spots.push({ x: tx, z: tz });
+  let tries = 0;
+  while (spots.length < 12 && tries++ < 6000) {
+    const a = rand() * Math.PI * 2, r = 20 + rand() * 300, x = Math.cos(a) * r, z = Math.sin(a) * r, h = getHeight(x, z);
+    if (h < 1.6 || h > 48 || slopeAt(x, z) > .6) continue;
+    if (spots.some(s => Math.hypot(s.x - x, s.z - z) < 60) || Math.hypot(x - site[0], z - site[1]) < 30 || Math.hypot(x - spawn.x, z - spawn.z) < 25) continue;
+    spots.push({ x, z });
+  }
+  spots.forEach(s => makeChest(s.x, s.z, s.y));
+
+  // ruins
+  tries = 0;
+  while (W.sites.length < 10 && tries++ < 3000) {
+    const a = rand() * Math.PI * 2, r = 30 + rand() * 280, x = Math.cos(a) * r, z = Math.sin(a) * r, h = getHeight(x, z);
+    if (h < 3 || h > 35 || slopeAt(x, z) > .35) continue;
+    if (W.sites.some(s => Math.hypot(s.x - x, s.z - z) < 55) || Math.hypot(x - spawn.x, z - spawn.z) < 20) continue;
+    W.sites.push({ x, z, r: 10 }); buildRuin(x, z, id === 'jungle');
+  }
+  const avoid = (x, z, r) => Math.hypot(x - spawn.x, z - spawn.z) < r || W.sites.some(s => Math.hypot(s.x - x, s.z - z) < s.r) ||
+    W.chests.some(ch => Math.hypot(ch.x - x, ch.z - z) < 4);
+
+  // plants
+  const plant = (geo, n, ok, windK = .012, colJitter = .22) => {
+    const im = new THREE.InstancedMesh(geo, addWind(new THREE.MeshStandardMaterial({ vertexColors: true, flatShading: true, roughness: .9 }), windK), n);
+    let placed = 0, att = 0; const col = new THREE.Color();
+    while (placed < n && att++ < n * 40) {
+      const x = (rand() * 2 - 1) * HALF * .9, z = (rand() * 2 - 1) * HALF * .9, h = getHeight(x, z), f = fbm(x * .008 + 200, z * .008 + 200, 3);
+      if (!ok(h, f, x, z) || slopeAt(x, z) > .75 || avoid(x, z, M.clearing)) continue;
+      const s = .8 + rand() * .7;
+      dummy.position.set(x, h - .2, z); dummy.rotation.set(0, rand() * 6.28, 0); dummy.scale.set(s, s * (.85 + rand() * .3), s); dummy.updateMatrix();
+      im.setMatrixAt(placed, dummy.matrix); im.setColorAt(placed, col.setScalar(1 - colJitter / 2 + rand() * colJitter));
+      addCollider(x, z, .45 * s); placed++;
+    }
+    im.count = placed; im.castShadow = true; im.receiveShadow = true; im.frustumCulled = false; world.add(im);
+  };
+  if (id === 'kingdom') buildKingdomPlants(plant); else buildJunglePlants(plant, avoid);
+
+  // rocks
+  { const n = 280, im = new THREE.InstancedMesh(new THREE.DodecahedronGeometry(1, 0), mat(M.rock), n); let placed = 0, att = 0;
+    while (placed < n && att++ < 20000) {
+      const x = (rand() * 2 - 1) * HALF * .9, z = (rand() * 2 - 1) * HALF * .9, h = getHeight(x, z);
+      if (h < -.5 || h > 60 || avoid(x, z, 8)) continue;
+      const s = .5 + Math.pow(rand(), 2) * 2.8;
+      dummy.position.set(x, h - s * .3, z); dummy.rotation.set(rand(), rand() * 6, rand()); dummy.scale.set(s * (.8 + rand() * .6), s * (.5 + rand() * .5), s * (.8 + rand() * .6)); dummy.updateMatrix();
+      im.setMatrixAt(placed++, dummy.matrix); if (s > 1.1) addCollider(x, z, s * .85);
+    }
+    im.count = placed; im.castShadow = true; im.receiveShadow = true; im.frustumCulled = false; world.add(im); }
+
+  // grass tufts
+  { const pos = [], col = [], nor = [], base = new THREE.Color(M.grass[0]), tip = new THREE.Color(M.grass[1]);
+    for (let i = 0; i < 6; i++) {
+      const a = rand() * 6.28, r = rand() * .3, x = Math.cos(a) * r, z = Math.sin(a) * r, h = .5 + rand() * .5, lean = (rand() - .5) * .35, ang = rand() * Math.PI, dx = Math.cos(ang) * .07, dz = Math.sin(ang) * .07;
+      // both windings so each face is lit with an upward normal from either side
+      pos.push(x - dx, 0, z - dz, x + dx, 0, z + dz, x + lean, h, z + lean * .5, x + dx, 0, z + dz, x - dx, 0, z - dz, x + lean, h, z + lean * .5);
+      for (let s = 0; s < 2; s++) { col.push(base.r, base.g, base.b, base.r, base.g, base.b, tip.r, tip.g, tip.b); nor.push(0, 1, 0, 0, 1, 0, 0, 1, 0); }
+    }
+    const gg = new THREE.BufferGeometry();
+    gg.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); gg.setAttribute('color', new THREE.Float32BufferAttribute(col, 3)); gg.setAttribute('normal', new THREE.Float32BufferAttribute(nor, 3));
+    const n = TOUCH ? 24000 : 60000, im = new THREE.InstancedMesh(gg, addWind(new THREE.MeshLambertMaterial({ vertexColors: true }), .14), n);
+    let placed = 0, att = 0; const cc = new THREE.Color(), yel = new THREE.Color(1.1, 1.05, .7);
+    const big = id === 'jungle' ? 1.2 : 1;
+    while (placed < n && att++ < 400000) {
+      const x = (rand() * 2 - 1) * HALF * .85, z = (rand() * 2 - 1) * HALF * .85, h = getHeight(x, z);
+      if (h < (id === 'jungle' ? 3 : 1.8) || h > 38 || slopeAt(x, z) > .6 || Math.hypot(x - site[0], z - site[1]) < 16) continue;
+      const s = (.8 + rand() * .8) * big;
+      dummy.position.set(x, h - .05, z); dummy.rotation.set(0, rand() * 6.28, 0); dummy.scale.set(s, s, s); dummy.updateMatrix();
+      im.setMatrixAt(placed, dummy.matrix);
+      cc.setScalar(.8 + rand() * .3).lerp(yel, smooth(.15, .45, fbm(x * .01 - 40, z * .01 + 9, 2)) * .4);
+      im.setColorAt(placed++, cc);
+    }
+    im.count = placed; im.frustumCulled = false; im.receiveShadow = true; world.add(im); }
+
+  // little flowers
+  { const n = 7000, stems = new THREE.InstancedMesh(new THREE.CylinderGeometry(.02, .02, .45, 3).translate(0, .22, 0), mat(0x5a9a44), n),
+      heads = new THREE.InstancedMesh(new THREE.OctahedronGeometry(.11, 0).translate(0, .47, 0), mat(0xffffff, { emissive: 0x222222 }), n);
+    const palette = M.flowers.map(h => new THREE.Color(h));
+    let placed = 0, att = 0;
+    while (placed < n && att++ < 200000) {
+      const cxp = (rand() * 2 - 1) * HALF * .85, czp = (rand() * 2 - 1) * HALF * .85;
+      if (fbm(cxp * .015 + 70, czp * .015, 2) < .05) continue;
+      const pc = palette[Math.floor(rand() * palette.length)];
+      for (let k = 0; k < 12 && placed < n; k++) {
+        const x = cxp + (rand() - .5) * 8, z = czp + (rand() - .5) * 8, h = getHeight(x, z);
+        if (h < 2.5 || h > 34 || slopeAt(x, z) > .5) continue;
+        const s = .8 + rand() * .6;
+        dummy.position.set(x, h - .03, z); dummy.rotation.set(0, rand() * 6, 0); dummy.scale.set(s, s, s); dummy.updateMatrix();
+        stems.setMatrixAt(placed, dummy.matrix); heads.setMatrixAt(placed, dummy.matrix); heads.setColorAt(placed, pc); placed++;
+      }
+    }
+    stems.count = heads.count = placed; stems.frustumCulled = heads.frustumCulled = false; world.add(stems, heads); }
+
+  if (id === 'jungle') buildVolcano();
+  buildBirds(M.birds);
+  buildPortal(M);
+
+  // wisdom stones: one right next to the start so kids find it immediately
+  const first = firstStoneSpot();
+  makeStone(first.x, first.z, 'math');
+  for (let i = 0; i < 26; i++) makeStone();
+
+  // restore opened chests for this map
+  const opened = progress.maps[id].opened || [];
+  W.chests.forEach((ch, i) => { if (opened[i]) { ch.opened = true; ch.open = 1; ch.lid.rotation.x = -1.9; ch.beam.visible = false; } });
+}
+
+function buildKingdomPlants(plant) {
+  const pineGeo = mergeGeometries([
+    colored(new THREE.CylinderGeometry(.25, .35, 1.6, 6).translate(0, .8, 0), 0x7a5536),
+    colored(new THREE.ConeGeometry(1.9, 2.8, 7).translate(0, 2.6, 0), 0x3f7f55),
+    colored(new THREE.ConeGeometry(1.5, 2.4, 7).translate(0, 3.8, 0), 0x4a8d5c),
+    colored(new THREE.ConeGeometry(1.0, 2.0, 7).translate(0, 4.9, 0), 0x56996a)]);
+  const roundParts = (a, b, cc) => mergeGeometries([
+    colored(new THREE.CylinderGeometry(.25, .38, 2.4, 6).translate(0, 1.2, 0), 0x7a5536),
+    colored(new THREE.IcosahedronGeometry(1.8, 0).translate(0, 3.3, 0), a),
+    colored(new THREE.IcosahedronGeometry(1.25, 0).translate(.95, 2.8, .5), b),
+    colored(new THREE.IcosahedronGeometry(1.1, 0).translate(-.8, 3.9, -.3), cc)]);
+  plant(pineGeo, 1100, (h, f) => h > 10 && h < 56 && f > -.02);
+  plant(roundParts(0x6fae4f, 0x7dbb58, 0x64a24a), 800, (h, f) => h > 2.5 && h < 32 && f > .02);
+  plant(roundParts(0xf6b3cc, 0xf9c7d8, 0xf19cbc), 160, (h, f) => h > 2.5 && h < 26 && f < .05 && rand() < .5);
+  plant(roundParts(0xf0c05a, 0xf4cf73, 0xe8ad48), 110, (h, f) => h > 4 && h < 30 && f > -.1 && f < .1 && rand() < .4);
+}
+
+function buildJunglePlants(plant, avoid) {
+  const palm = (() => {
+    const parts = [];
+    for (let i = 0; i < 6; i++) parts.push(colored(new THREE.CylinderGeometry(.2 - .015 * i, .26 - .015 * i, 1.12, 6).translate(i * i * .05, .55 + i * 1.05, 0), i % 2 ? 0x9a7650 : 0x86653f));
+    const tx = 1.25, ty = 6.4;
+    for (let k = 0; k < 8; k++) parts.push(colored(new THREE.BoxGeometry(.7, .06, 3.2).translate(0, 0, 1.6).rotateX(.45 + (k % 2) * .18).rotateY(k / 8 * Math.PI * 2).translate(tx, ty, 0), k % 2 ? 0x4caf50 : 0x379a45));
+    for (let k = 0; k < 3; k++) parts.push(colored(new THREE.IcosahedronGeometry(.22, 0).translate(tx + Math.cos(k * 2.1) * .3, ty - .3, Math.sin(k * 2.1) * .3), 0x6b4a2a));
+    return mergeGeometries(parts);
+  })();
+  const jtree = blossom => mergeGeometries([
+    colored(new THREE.CylinderGeometry(.35, .6, 7, 7).translate(0, 3.5, 0), 0x6e5238),
+    colored(new THREE.IcosahedronGeometry(2.9, 0).scale(1, .55, 1).translate(0, 7.4, 0), 0x2f7a3a),
+    colored(new THREE.IcosahedronGeometry(2.2, 0).scale(1, .6, 1).translate(1.7, 6.7, .8), 0x3a8f45),
+    colored(new THREE.IcosahedronGeometry(2, 0).scale(1, .6, 1).translate(-1.6, 7.9, -.6), 0x2a6e35),
+    colored(new THREE.CylinderGeometry(.05, .05, 2.6, 3).translate(2.2, 5.2, 1.2), 0x4f9a3a),
+    colored(new THREE.CylinderGeometry(.05, .05, 2.2, 3).translate(-2.1, 6.2, -.9), 0x4f9a3a),
+    ...(blossom ? [colored(new THREE.IcosahedronGeometry(.5, 0).translate(1, 8.3, 1.2), 0xff8a3d), colored(new THREE.IcosahedronGeometry(.45, 0).translate(-1.2, 8.6, .4), 0xffb13d), colored(new THREE.IcosahedronGeometry(.5, 0).translate(.3, 7.8, -1.8), 0xff6f5a)] : [])]);
+  const bush = colored(new THREE.IcosahedronGeometry(1.1, 0).scale(1, .7, 1).translate(0, .5, 0), 0x3f8f3f);
+  plant(palm, 420, h => h > 1.4 && h < 9, .02);
+  plant(jtree(false), 800, (h, f) => h > 7 && h < 42 && f > -.08, .008);
+  plant(jtree(true), 160, (h, f) => h > 6 && h < 34 && f > -.1 && rand() < .5, .008);
+  plant(bush, 700, h => h > 3 && h < 40, .03, .35);
+  // giant flowers
+  const gflower = col => {
+    const parts = [colored(new THREE.CylinderGeometry(.08, .11, 1.7, 5).translate(0, .85, 0), 0x3f8f3a), colored(new THREE.SphereGeometry(.24, 8, 6).translate(0, 1.78, 0), 0xffd84a),
+      colored(new THREE.SphereGeometry(.35, 6, 4).scale(1, .15, .45).translate(.4, .6, 0), 0x4caf50), colored(new THREE.SphereGeometry(.35, 6, 4).scale(1, .15, .45).translate(-.4, .9, 0), 0x4caf50)];
+    for (let k = 0; k < 5; k++) parts.push(colored(new THREE.SphereGeometry(.42, 8, 5).scale(1, .22, .62).translate(.46, 0, 0).rotateY(k / 5 * Math.PI * 2).translate(0, 1.72, 0), col));
+    return mergeGeometries(parts);
+  };
+  for (const col of [0xff6fa8, 0xff9a3d, 0xb27bff, 0xff4d5a]) {
+    const n = 90, im = new THREE.InstancedMesh(gflower(col), addWind(new THREE.MeshStandardMaterial({ vertexColors: true, flatShading: true, roughness: .8 }), .03), n);
+    let placed = 0, att = 0;
+    while (placed < n && att++ < 6000) {
+      const x = (rand() * 2 - 1) * HALF * .85, z = (rand() * 2 - 1) * HALF * .85, h = getHeight(x, z);
+      if (h < 3 || h > 32 || slopeAt(x, z) > .5 || avoid(x, z, 6)) continue;
+      const s = 1 + rand() * 1.3;
+      dummy.position.set(x, h - .05, z); dummy.rotation.set(0, rand() * 6.28, 0); dummy.scale.setScalar(s); dummy.updateMatrix();
+      im.setMatrixAt(placed++, dummy.matrix);
+    }
+    im.count = placed; im.castShadow = true; im.frustumCulled = false; world.add(im);
+  }
+}
+
+/* ============ landmarks ============ */
+function buildCastle(cx, cz) {
+  const base = getHeight(cx, cz), grp = new THREE.Group(); grp.position.set(cx, base, cz); world.add(grp);
+  const stone = mat(0xe6dfd1), stone2 = mat(0xd3cab8), roof = mat(0x7a8fe0), flagM = mat(0xff8a65, { side: THREE.DoubleSide }), win = mat(0x3a3350);
+  const S = 14;
+  const add = (m, x, y, z) => { m.position.set(x, y, z); m.castShadow = m.receiveShadow = true; grp.add(m); return m; };
+  function wall(x1, z1, x2, z2) {
+    const len = Math.hypot(x2 - x1, z2 - z1), ang = -Math.atan2(z2 - z1, x2 - x1);
+    const w = add(new THREE.Mesh(new THREE.BoxGeometry(len, 13, 1.6), stone2), (x1 + x2) / 2, .5, (z1 + z2) / 2); w.rotation.y = ang;
+    for (let t = .8; t < len; t += 1.8) { const b = add(new THREE.Mesh(new THREE.BoxGeometry(.9, .9, 1.7), stone2), lerp(x1, x2, t / len), 7.4, lerp(z1, z2, t / len)); b.rotation.y = ang; }
+    for (let t = 0; t <= len; t += 1.5) addCollider(cx + lerp(x1, x2, t / len), cz + lerp(z1, z2, t / len), 1.1);
+  }
+  wall(-S, -S, S, -S); wall(S, -S, S, S); wall(-S, -S, -S, S); wall(-S, S, -3, S); wall(3, S, S, S);
+  for (const [x, z] of [[-S, -S], [S, -S], [S, S], [-S, S], [-3.6, S + .4], [3.6, S + .4]]) {
+    const small = Math.abs(x) < 5, r = small ? 1.5 : 2.6, h = small ? 13 : 17;
+    add(new THREE.Mesh(new THREE.CylinderGeometry(r, r * 1.1, h, 8), stone), x, h / 2 - 5, z);
+    add(new THREE.Mesh(new THREE.ConeGeometry(r * 1.3, r * 1.8, 8), roof), x, h - 5 + r * .9, z);
+    if (!small) { add(new THREE.Mesh(new THREE.CylinderGeometry(.06, .06, 3, 4), stone2), x, h - 5 + r * 1.8 + 1, z);
+      const f = add(new THREE.Mesh(new THREE.PlaneGeometry(1.4, .8), flagM), x + .7, h - 5 + r * 1.8 + 2, z); W.flags.push(f); }
+    addCollider(cx + x, cz + z, r + .5);
+  }
+  add(new THREE.Mesh(new THREE.CylinderGeometry(4.5, 5, 28, 8), stone), 0, 9, 0);
+  add(new THREE.Mesh(new THREE.ConeGeometry(5.8, 8, 8), roof), 0, 27, 0);
+  add(new THREE.Mesh(new THREE.CylinderGeometry(.08, .08, 4, 4), stone2), 0, 32.5, 0);
+  W.flags.push(add(new THREE.Mesh(new THREE.PlaneGeometry(2.4, 1.3), flagM), 1.2, 33.8, 0));
+  for (let i = 0; i < 8; i++) { const a = i / 8 * 6.28 + .39, w = add(new THREE.Mesh(new THREE.BoxGeometry(.7, 1.3, .3), win), Math.sin(a) * 4.45, 14 + (i % 2) * 4, Math.cos(a) * 4.45); w.rotation.y = a; }
+  add(new THREE.Mesh(new THREE.BoxGeometry(1.6, 2.4, .3), win), 0, 1.2, 4.9);
+  addCollider(cx, cz, 5.4);
+  return [{ x: cx - 8, z: cz + 7 }];
+}
+
+// a stepped jungle temple you can climb, with a chest at the very top
+function buildTemple(cx, cz) {
+  const h0 = getHeight(cx, cz), grp = new THREE.Group(); world.add(grp);
+  const stoneA = mat(0xa8ad92), stoneB = mat(0x969c82), moss = mat(0x6d9a4a), dark = mat(0x2b2a28);
+  const add = (geo, m, x, y, z) => { const o = new THREE.Mesh(geo, m); o.position.set(x, y, z); o.castShadow = o.receiveShadow = true; grp.add(o); return o; };
+  [11, 8.5, 6, 3.5].forEach((hs, k) => {
+    const top = h0 + 3 * (k + 1), bottom = h0 - 5;
+    add(new THREE.BoxGeometry(hs * 2, top - bottom, hs * 2), k % 2 ? stoneB : stoneA, cx, (top + bottom) / 2, cz);
+    add(new THREE.BoxGeometry(hs * 2 + .1, .25, hs * 2 + .1), moss, cx, top + .02, cz);
+    platforms.push({ x0: cx - hs, x1: cx + hs, z0: cz - hs, z1: cz + hs, top });
+  });
+  const N = 20, z0 = cz + 15, run = 11.5 / N;
+  for (let i = 0; i < N; i++) {
+    const top = h0 + (i + 1) * .6, za = z0 - (i + 1) * run, zb = z0 - i * run;
+    add(new THREE.BoxGeometry(4, top - (h0 - 4), run), i % 2 ? stoneA : stoneB, cx, (top + h0 - 4) / 2, (za + zb) / 2);
+    platforms.push({ x0: cx - 2, x1: cx + 2, z0: za, z1: zb + .01, top });
+  }
+  const T = h0 + 12;
+  add(new THREE.BoxGeometry(3.2, 3, 3), stoneB, cx, T + 1.5, cz - 1.6);
+  const roofM = add(new THREE.ConeGeometry(2.7, 2.2, 4), moss, cx, T + 4.1, cz - 1.6); roofM.rotation.y = Math.PI / 4;
+  add(new THREE.BoxGeometry(1.1, 1.8, .1), dark, cx, T + .9, cz - .05);
+  platforms.push({ x0: cx - 1.6, x1: cx + 1.6, z0: cz - 3.1, z1: cz - .1, top: T + 3.5 });
+  for (const sx of [-2.7, 2.7]) {
+    add(new THREE.CylinderGeometry(.12, .16, 1.2, 6), dark, cx + sx, T + .6, cz + 2.8);
+    const flame = add(new THREE.OctahedronGeometry(.25, 0), new THREE.MeshBasicMaterial({ color: 0xffa040 }), cx + sx, T + 1.4, cz + 2.8);
+    W.crystals.push(flame); flame.userData.flame = true;
+  }
+  // stone animal heads guarding the stairs
+  for (const sx of [-4, 4]) {
+    add(new THREE.BoxGeometry(2, 2.2, 2), stoneB, cx + sx, h0 + 1.1, cz + 16);
+    add(new THREE.BoxGeometry(.35, .35, .1), dark, cx + sx - .45, h0 + 1.5, cz + 17.02); add(new THREE.BoxGeometry(.35, .35, .1), dark, cx + sx + .45, h0 + 1.5, cz + 17.02);
+    add(new THREE.BoxGeometry(1.2, .2, .1), dark, cx + sx, h0 + .7, cz + 17.02);
+    addCollider(cx + sx, cz + 16, 1.4);
+  }
+  return [{ x: cx, z: cz + 1.6, y: T }];
+}
+
+function buildRuin(x, z, jungle) {
+  const h = getHeight(x, z), grp = new THREE.Group(); grp.position.set(x, h, z); world.add(grp);
+  const stone = mat(jungle ? 0xa3a88e : 0xdcd3c3), moss = mat(jungle ? 0x5f9a3e : 0x86b35e);
+  const floor = new THREE.Mesh(new THREE.CylinderGeometry(8, 8.5, 1.2, 10), mat(jungle ? 0x949a80 : 0xcfc6b4)); floor.position.y = -.45; floor.receiveShadow = true; grp.add(floor);
+  const n = 6 + Math.floor(rand() * 3), R = 5 + rand() * 1.5;
+  for (let i = 0; i < n; i++) {
+    const a = i / n * 6.28, px = Math.cos(a) * R, pz = Math.sin(a) * R, kind = rand();
+    if (kind < .15) continue;
+    if (kind < .3) {
+      const p = new THREE.Mesh(new THREE.CylinderGeometry(.6, .6, 5, 8), stone); p.rotation.set(0, rand() * 6, Math.PI / 2); p.rotation.order = 'YXZ';
+      p.position.set(px + Math.cos(a) * 2, .5, pz + Math.sin(a) * 2); p.castShadow = p.receiveShadow = true; grp.add(p); continue;
+    }
+    const ph = kind < .55 ? 1.5 + rand() * 2 : 5.5 + rand() * 1.5;
+    const p = new THREE.Mesh(new THREE.CylinderGeometry(.6, .7, ph, 8), stone); p.position.set(px, ph / 2, pz); p.castShadow = p.receiveShadow = true; grp.add(p);
+    const cap = new THREE.Mesh(ph > 5 ? new THREE.BoxGeometry(1.7, .5, 1.7) : new THREE.CylinderGeometry(.62, .62, .25, 8), ph > 5 ? stone : moss);
+    cap.position.set(px, ph + .2, pz); cap.castShadow = true; grp.add(cap);
+    addCollider(x + px, z + pz, 1);
+  }
+  const crystal = new THREE.Mesh(new THREE.OctahedronGeometry(.9, 0), mat(jungle ? 0xb8ffcf : 0xbfe3ff, { emissive: jungle ? 0x3a9a5a : 0x5a86b0, emissiveIntensity: .6, roughness: .3 }));
+  crystal.position.y = 2; grp.add(crystal); W.crystals.push(crystal);
+  const ped = new THREE.Mesh(new THREE.CylinderGeometry(.9, 1.1, 1, 8), stone); ped.position.y = .5; ped.castShadow = true; grp.add(ped);
+  addCollider(x, z, 1.3);
+}
+
+function buildVolcano() {
+  const ly = getHeight(VX, VZ) + .8;
+  const lava = new THREE.Mesh(new THREE.CircleGeometry(13, 24).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ color: 0xff6a2a }));
+  lava.position.set(VX, ly, VZ); world.add(lava);
+  const n = 70, geo = new THREE.BufferGeometry(), pos = new Float32Array(n * 3), data = [];
+  for (let i = 0; i < n; i++) data.push({ a: Math.random() * 6.28, r: Math.random() * 8, y: Math.random() * 60, sp: 2 + Math.random() * 2 });
+  geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+  const smoke = new THREE.Points(geo, new THREE.PointsMaterial({ size: 9, map: glowTex, transparent: true, depthWrite: false, color: 0x9a9492, opacity: .3 }));
+  smoke.frustumCulled = false; world.add(smoke);
+  W.smoke = { pts: smoke, pos, data, y0: ly }; W.lava = { x: VX, z: VZ, y: ly, r: 12 };
+}
+
+/* ============ chests ============ */
+function makeChest(x, z, y) {
+  const h = y ?? getHeight(x, z), grp = new THREE.Group(); grp.position.set(x, h - .05, z); grp.rotation.y = rand() * 6.28; world.add(grp);
+  const wood = mat(0x8a5a33), gold = mat(0xe6b84a, { metalness: .6, roughness: .35 });
+  const base = new THREE.Mesh(new THREE.BoxGeometry(1.2, .6, .8), wood); base.position.y = .3; grp.add(base);
+  for (const bx of [-.42, .42]) { const b = new THREE.Mesh(new THREE.BoxGeometry(.1, .62, .82), gold); b.position.set(bx, .3, 0); grp.add(b); }
+  const inner = new THREE.Mesh(new THREE.PlaneGeometry(1.05, .65), new THREE.MeshBasicMaterial({ color: 0xffd27a })); inner.rotation.x = -Math.PI / 2; inner.position.y = .55; grp.add(inner);
+  const lid = new THREE.Group(); lid.position.set(0, .6, -.4); grp.add(lid);
+  const top = new THREE.Mesh(new THREE.CylinderGeometry(.4, .4, 1.2, 8, 1, false, 0, Math.PI), wood); top.rotation.z = Math.PI / 2; top.position.set(0, 0, .4); top.scale.set(.6, 1, 1); lid.add(top);
+  const band = new THREE.Mesh(new THREE.BoxGeometry(1.22, .08, .82), gold); band.position.set(0, .02, .4); lid.add(band);
+  const lock = new THREE.Mesh(new THREE.BoxGeometry(.2, .22, .08), gold); lock.position.set(0, -.05, .82); lid.add(lock);
+  grp.traverse(m => { if (m.isMesh && m !== inner) { m.castShadow = true; m.receiveShadow = true; } });
+  const beamMat = beamMaterial(0xffd98a);
+  const beam = new THREE.Mesh(new THREE.CylinderGeometry(.55, .9, 70, 12, 1, true), beamMat); beam.position.set(x, h + 35, z); world.add(beam);
+  addCollider(x, z, .8);
+  W.chests.push({ x, z, y: h, grp, lid, beam, beamMat, opened: false, open: 0 });
+}
+
+/* ============ wisdom stones ============ */
+const SUBJ = {
+  math: { icon: '🔢', en: 'Math', mm: 'သင်္ချာ', color: 0x6ec8ff, css: '#6ec8ff' },
+  animal: { icon: '🐾', en: 'Animals', mm: 'တိရစ္ဆာန်', color: 0x7cf0a0, css: '#7cf0a0' },
+  english: { icon: '🔤', en: 'English', mm: 'အင်္ဂလိပ်စာ', color: 0xff9ad5, css: '#ff9ad5' },
+  know: { icon: '💡', en: 'Did you know?', mm: 'ဗဟုသုတ', color: 0xffd36e, css: '#ffd36e' }
+};
+const STONE_GEO = new THREE.OctahedronGeometry(.45, 0).scale(1, 1.7, 1);
+function firstStoneSpot() {
+  for (let a = 0; a < 6.28; a += .3) { const x = spawn.x + Math.cos(a) * 7, z = spawn.z + Math.sin(a) * 7, h = getHeight(x, z); if (h > 2 && slopeAt(x, z) < .5) return { x, z }; }
+  return { x: spawn.x + 5, z: spawn.z };
+}
+function makeStone(x, z, subj) {
+  if (x === undefined) {
+    let ok = false;
+    for (let t = 0; t < 400 && !ok; t++) {
+      x = (Math.random() * 2 - 1) * HALF * .8; z = (Math.random() * 2 - 1) * HALF * .8; const h = getHeight(x, z);
+      ok = h > 2 && h < 55 && slopeAt(x, z) < .6 && !W.stones.some(s => Math.hypot(s.x - x, s.z - z) < 28) && !W.chests.some(c => Math.hypot(c.x - x, c.z - z) < 5) &&
+        !W.sites.some(s => Math.hypot(s.x - x, s.z - z) < s.r * .6) && Math.hypot(x - spawn.x, z - spawn.z) > 12;
+    }
+    if (!ok) return;
+  }
+  subj = subj || pick(Object.keys(SUBJ));
+  const S = SUBJ[subj], y = groundAt(x, z), g = new THREE.Group(); g.position.set(x, y, z); world.add(g);
+  const crystal = new THREE.Mesh(STONE_GEO, new THREE.MeshStandardMaterial({ color: S.color, emissive: S.color, emissiveIntensity: .8, roughness: .3, flatShading: true }));
+  crystal.position.y = 1.5; crystal.castShadow = true; g.add(crystal);
+  const base = new THREE.Mesh(new THREE.CylinderGeometry(.55, .75, .4, 6), mat(0xb9b2a6)); base.position.y = .15; base.receiveShadow = true; g.add(base);
+  const beamMat = beamMaterial(S.color, .45);
+  const beam = new THREE.Mesh(new THREE.CylinderGeometry(.25, .45, 14, 8, 1, true), beamMat); beam.position.y = 7; g.add(beam);
+  const icon = emojiSprite(S.icon); icon.position.y = 2.9; icon.scale.setScalar(.9); g.add(icon);
+  W.stones.push({ x, z, y, g, crystal, beamMat, subj, state: 'idle', cool: false, t: 0 });
+}
+
+/* ============ portal between maps ============ */
+function buildPortal(M) {
+  let px = spawn.x + 14, pz = spawn.z;
+  for (let a = 0; a < 6.28; a += .25) { const x = spawn.x + Math.cos(a) * 14, z = spawn.z + Math.sin(a) * 14, h = getHeight(x, z); if (h > 2.5 && slopeAt(x, z) < .3) { px = x; pz = z; break; } }
+  const h = getHeight(px, pz), g = new THREE.Group(); g.position.set(px, h, pz); g.rotation.y = Math.atan2(spawn.x - px, spawn.z - pz); world.add(g);
+  const stone = mat(0xd8d0c0), gold = mat(0xe6b84a, { metalness: .5, roughness: .4 });
+  for (const sx of [-2.6, 2.6]) { const p = new THREE.Mesh(new THREE.BoxGeometry(.8, 5.4, .8), stone); p.position.set(sx, 2.4, 0); p.castShadow = true; g.add(p);
+    const ry = g.rotation.y; addCollider(px + sx * Math.cos(ry), pz - sx * Math.sin(ry), .7); }
+  const lintel = new THREE.Mesh(new THREE.BoxGeometry(6.4, .8, 1), stone); lintel.position.y = 5.4; lintel.castShadow = true; g.add(lintel);
+  const ring = new THREE.Mesh(new THREE.TorusGeometry(2.1, .22, 8, 28), gold); ring.position.y = 2.6; g.add(ring);
+  const disc = new THREE.Mesh(new THREE.CircleGeometry(2, 40), new THREE.ShaderMaterial({
+    uniforms: { uTime: U.time, uColor: { value: new THREE.Color(M.portalColor) } },
+    vertexShader: `varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix*modelViewMatrix*vec4(position,1.0); }`,
+    fragmentShader: `uniform float uTime; uniform vec3 uColor; varying vec2 vUv;
+      void main(){ vec2 p = vUv - .5; float r = length(p) * 2.0; float a = atan(p.y, p.x);
+        float s = sin(a * 5.0 + uTime * 3.0 - r * 12.0) * .5 + .5;
+        vec3 col = mix(uColor, vec3(1.0), s * .55) * (1.3 - r * .6);
+        gl_FragColor = vec4(col, smoothstep(1.0, .75, r) * .9); }`,
+    transparent: true, side: THREE.DoubleSide, depthWrite: false }));
+  disc.position.y = 2.6; g.add(disc);
+  const to = MAPS[M.portalTo], label = textSprite(`${to.icon} ${to.name} · ${to.mm}`, 768, 128, 50);
+  label.position.y = 6.9; label.scale.set(8.4, 1.4, 1); g.add(label);
+  W.portal = { x: px, z: pz, y: h, to: M.portalTo };
+}
+
+/* ============ birds ============ */
+function buildBirds(colors) {
+  for (let i = 0; i < 16; i++) {
+    const c = colors[i % colors.length], g = new THREE.Group();
+    const body = new THREE.Mesh(new THREE.ConeGeometry(.25, 1, 5).rotateX(Math.PI / 2), mat(c)); g.add(body);
+    const wm = mat(c, { side: THREE.DoubleSide });
+    const wl = new THREE.Mesh(new THREE.PlaneGeometry(1.2, .45).translate(.6, 0, 0).rotateX(-Math.PI / 2), wm), wr = wl.clone(); wr.scale.x = -1; g.add(wl, wr);
+    const cx = (rand() * 2 - 1) * 250, cz = (rand() * 2 - 1) * 250;
+    g.userData = { wl, wr, cx, cz, r: 20 + rand() * 50, h: Math.max(getHeight(cx, cz), 0) + 25 + rand() * 25, sp: (.15 + rand() * .2) * (rand() < .5 ? -1 : 1), ph: rand() * 6.28 };
+    world.add(g); W.birds.push(g);
+  }
+}
+
+/* ============ clouds (shared by all maps) ============ */
+const clouds = [];
+function buildClouds() {
+  const cm = new THREE.MeshStandardMaterial({ color: 0xffffff, flatShading: true, roughness: 1, fog: false, emissive: 0x555566 });
+  for (let i = 0; i < 26; i++) {
+    const g = new THREE.Group(), n = 4 + Math.floor(rand() * 4);
+    for (let k = 0; k < n; k++) { const s = 6 + rand() * 9, m = new THREE.Mesh(new THREE.IcosahedronGeometry(s, 0), cm); m.position.set(k * 9 - n * 4.5 + (rand() - .5) * 5, (rand() - .5) * 4, (rand() - .5) * 10); m.scale.y = .6; g.add(m); }
+    g.position.set((rand() * 2 - 1) * 700, 120 + rand() * 60, (rand() * 2 - 1) * 700);
+    g.userData.speed = 1.5 + rand() * 2; scene.add(g); clouds.push(g);
+  }
+  clouds.mat = cm;
+}
+
+/* ============ particles ============ */
+const MOTES = 260, moteGeo = new THREE.BufferGeometry(), motePos = new Float32Array(MOTES * 3), moteData = [];
+moteGeo.setAttribute('position', new THREE.BufferAttribute(motePos, 3));
+const moteMat = new THREE.PointsMaterial({ size: .35, map: glowTex, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, color: 0xffffff, opacity: .5 });
+const motes = new THREE.Points(moteGeo, moteMat); motes.frustumCulled = false; scene.add(motes);
+const burstN = 90, burstGeo = new THREE.BufferGeometry(), burstPos = new Float32Array(burstN * 3), burstVel = new Float32Array(burstN * 3);
+burstGeo.setAttribute('position', new THREE.BufferAttribute(burstPos, 3));
+const burstMat = new THREE.PointsMaterial({ size: .45, map: glowTex, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, color: 0xffd98a, opacity: 0 });
+const burst = new THREE.Points(burstGeo, burstMat); burst.frustumCulled = false; scene.add(burst);
+let burstLife = 0;
+function sparkle(x, y, z, color = 0xffd98a) {
+  for (let i = 0; i < burstN; i++) { burstPos.set([x, y, z], i * 3); const a = Math.random() * 6.28, s = 1 + Math.random() * 3; burstVel.set([Math.cos(a) * s, 3 + Math.random() * 5, Math.sin(a) * s], i * 3); }
+  burstLife = 2.5; burstMat.color.set(color); burstLight.color.set(color); burstLight.position.set(x, y + 1, z);
+}
+// rainbow / flight trail
+const TRAIL = 200, trailGeo = new THREE.BufferGeometry(), trailPos = new Float32Array(TRAIL * 3).fill(-999), trailCol = new Float32Array(TRAIL * 3), trailLife = new Float32Array(TRAIL);
+trailGeo.setAttribute('position', new THREE.BufferAttribute(trailPos, 3)); trailGeo.setAttribute('color', new THREE.BufferAttribute(trailCol, 3));
+const trail = new THREE.Points(trailGeo, new THREE.PointsMaterial({ size: .4, map: glowTex, vertexColors: true, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending }));
+trail.frustumCulled = false; scene.add(trail);
+let trailIdx = 0; const tc = new THREE.Color();
+
+/* ============ player ============ */
+const LOOK_KEY = 'quietKingdom.look';
+const look = { name: '', hair: 'short', hairColor: '#4a3426', skin: '#f2c9a0', outfit: '#3f8f86', scarf: '#e8664a', bag: '#a5784b', hat: 'wizard', bigHead: true, photo: null, zoom: 1.4, ox: 0, oy: 0 };
+try { Object.assign(look, JSON.parse(localStorage.getItem(LOOK_KEY)) || {}); } catch (e) {}
+function saveLook() { try { localStorage.setItem(LOOK_KEY, JSON.stringify(look)); } catch (e) {} }
+
+// face photo: drawn into a round, soft-edged canvas that is both the texture and the preview
+const faceCanvas = $('lk-face');
+const faceTex = new THREE.CanvasTexture(faceCanvas); faceTex.colorSpace = THREE.SRGBColorSpace;
+let faceImg = null;
+function renderFace() {
+  const x = faceCanvas.getContext('2d'); x.clearRect(0, 0, 256, 256);
+  if (!faceImg) return;
+  x.save(); x.beginPath(); x.arc(128, 128, 127, 0, Math.PI * 2); x.clip();
+  const s = look.zoom * 256 / Math.min(faceImg.width, faceImg.height), w = faceImg.width * s, h = faceImg.height * s;
+  x.drawImage(faceImg, 128 - w / 2 + look.ox * w / 2, 128 - h / 2 + look.oy * h / 2, w, h); x.restore();
+  x.globalCompositeOperation = 'destination-in';
+  const g = x.createRadialGradient(128, 128, 96, 128, 128, 127); g.addColorStop(0, 'rgba(0,0,0,1)'); g.addColorStop(1, 'rgba(0,0,0,0)');
+  x.fillStyle = g; x.fillRect(0, 0, 256, 256); x.globalCompositeOperation = 'source-over';
+  faceTex.needsUpdate = true;
+}
+function loadFaceImg(cb) {
+  if (!look.photo) { faceImg = null; renderFace(); cb && cb(); return; }
+  const img = new Image(); img.onload = () => { faceImg = img; renderFace(); cb && cb(); }; img.src = look.photo;
+}
+
+function makePlayer() {
+  const g = new THREE.Group(), body = new THREE.Group(); g.add(body); scene.add(g);
+  const M = { skin: mat(look.skin), hair: mat(look.hairColor), outfit: mat(look.outfit), sleeve: mat(look.outfit), scarf: mat(look.scarf), bag: mat(look.bag) };
+  const add = (parent, geo, m, x, y, z) => { const mesh = new THREE.Mesh(geo, m.isMaterial ? m : mat(m)); mesh.position.set(x, y, z); mesh.castShadow = true; parent.add(mesh); return mesh; };
+  add(body, new THREE.CylinderGeometry(.28, .44, .8, 7), M.outfit, 0, .98, 0);
+  add(body, new THREE.CylinderGeometry(.32, .34, .08, 7), 0x6b4a2b, 0, .86, 0);
+  const head = new THREE.Group(); body.add(head);
+  add(head, new THREE.IcosahedronGeometry(.26, 2), M.skin, 0, 0, 0);
+  const eyes = new THREE.Group(); head.add(eyes);
+  add(eyes, new THREE.SphereGeometry(.035, 6, 6), 0x2a2030, .09, .02, .235); add(eyes, new THREE.SphereGeometry(.035, 6, 6), 0x2a2030, -.09, .02, .235);
+  // a curved cap on the front of the head, UVs projected flat from the front so the photo isn't stretched
+  const fg = new THREE.SphereGeometry(.268, 24, 16, Math.PI / 2 - .95, 1.9, Math.PI / 2 - .85, 1.7), fp = fg.attributes.position, fuv = fg.attributes.uv;
+  for (let i = 0; i < fp.count; i++) fuv.setXY(i, .5 + fp.getX(i) / .42, .5 + fp.getY(i) / .42);
+  const face = new THREE.Mesh(fg, new THREE.MeshStandardMaterial({ map: faceTex, transparent: true, roughness: .85, emissive: 0xffffff, emissiveMap: faceTex, emissiveIntensity: .38 }));
+  head.add(face);
+  const hair = new THREE.Group(), hat = new THREE.Group(); head.add(hair, hat);
+  const scarf = add(body, new THREE.TorusGeometry(.24, .08, 5, 10), M.scarf, 0, 1.36, 0); scarf.rotation.x = Math.PI / 2;
+  const tail = new THREE.Group(); tail.position.set(.1, 1.36, -.22); body.add(tail); add(tail, new THREE.BoxGeometry(.13, .45, .05), M.scarf, 0, -.22, 0);
+  add(body, new THREE.BoxGeometry(.42, .46, .2), M.bag, 0, 1.05, -.34);
+  const roll = add(body, new THREE.CylinderGeometry(.1, .1, .5, 6), 0x9ab7d8, 0, 1.33, -.36); roll.rotation.z = Math.PI / 2;
+  // magic wings, only shown while flying
+  const wings = new THREE.Group(); wings.position.set(0, 1.2, -.42); body.add(wings);
+  const wingM = new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: 0xbfe6ff, emissiveIntensity: .6, transparent: true, opacity: .85, side: THREE.DoubleSide, flatShading: true });
+  const wgeo = new THREE.CircleGeometry(.55, 5).scale(1.4, .8, 1).translate(.7, .15, 0);
+  const wL = new THREE.Mesh(wgeo, wingM), wR = new THREE.Mesh(wgeo, wingM); wR.scale.x = -1;
+  const wLp = new THREE.Group(), wRp = new THREE.Group(); wLp.add(wL); wRp.add(wR); wings.add(wLp, wRp); wings.visible = false;
+  const limb = (x, y, w, h, m, handM) => { const piv = new THREE.Group(); piv.position.set(x, y, 0); body.add(piv); add(piv, new THREE.BoxGeometry(w, h, w), m, 0, -h / 2, 0); add(piv, new THREE.BoxGeometry(w * 1.15, .14, w * 1.4), handM, 0, -h, .03); return piv; };
+  const armL = limb(.37, 1.3, .13, .48, M.sleeve, M.skin), armR = limb(-.37, 1.3, .13, .48, M.sleeve, M.skin);
+  const legL = limb(.14, .6, .17, .55, 0x4b3d33, 0x5a3a22), legR = limb(-.14, .6, .17, .55, 0x4b3d33, 0x5a3a22);
+  const tag = new THREE.Sprite(new THREE.SpriteMaterial({ map: tagTex, depthTest: false, depthWrite: false }));
+  tag.scale.set(2.2, .69, 1); tag.renderOrder = 10; g.add(tag);
+  const glow = new THREE.PointLight(0xffe0a0, 0, 18, 1.5); glow.position.y = 1.6; g.add(glow);
+  const arrow = new THREE.Mesh(new THREE.ConeGeometry(.22, .7, 4).rotateX(Math.PI / 2), mat(0xffd36e, { emissive: 0xffb020, emissiveIntensity: .8 }));
+  arrow.visible = false; scene.add(arrow);
+  const pl = { g, body, head, eyes, face, hair, hat, M, armL, armR, legL, legR, tail, wings, wLp, wRp, tag, glow, arrow, pony: null, add };
+  applyLook(pl);
+  return pl;
+}
+
+function applyLook(pl = player) {
+  if (!pl) return;
+  const { M, add, hair, hat, head } = pl;
+  M.skin.color.set(look.skin); M.hair.color.set(look.hairColor); M.outfit.color.set(look.outfit);
+  M.sleeve.color.set(look.outfit).multiplyScalar(.82); M.scarf.color.set(look.scarf); M.bag.color.set(look.bag || '#a5784b');
+  const hasFace = !!faceImg; pl.face.visible = hasFace; pl.eyes.visible = !hasFace;
+  const s = look.bigHead ? 1.4 : 1; head.scale.setScalar(s); head.position.y = 1.58 + .26 * (s - 1);
+  hair.clear(); pl.pony = null;
+  const cap = add(hair, new THREE.IcosahedronGeometry(.275, 1), M.hair, 0, .06, -.05); cap.scale.set(1, .82, 1);
+  if (look.hair === 'long') {
+    add(hair, new THREE.BoxGeometry(.5, .6, .14), M.hair, 0, -.26, -.17);
+    add(hair, new THREE.BoxGeometry(.1, .46, .14), M.hair, .245, -.16, -.04); add(hair, new THREE.BoxGeometry(.1, .46, .14), M.hair, -.245, -.16, -.04);
+  } else if (look.hair === 'ponytail') {
+    add(hair, new THREE.IcosahedronGeometry(.09, 0), M.hair, 0, .08, -.3);
+    const pony = new THREE.Group(); pony.position.set(0, .08, -.32); hair.add(pony);
+    const t = add(pony, new THREE.ConeGeometry(.1, .5, 6), M.hair, 0, -.25, -.04); t.rotation.x = Math.PI;
+    pl.pony = pony;
+  } else if (look.hair === 'braids') {
+    for (const sx of [1, -1]) {
+      for (let i = 0; i < 5; i++) add(hair, new THREE.IcosahedronGeometry(.062 - i * .004, 0), M.hair, sx * (.22 - i * .006), -.1 - i * .085, -.08 - i * .012);
+      add(hair, new THREE.SphereGeometry(.035, 6, 6), 0xf29ac0, sx * .196, -.52, -.14);
+    }
+  } else if (look.hair === 'buns') {
+    add(hair, new THREE.IcosahedronGeometry(.12, 1), M.hair, .19, .2, -.06); add(hair, new THREE.IcosahedronGeometry(.12, 1), M.hair, -.19, .2, -.06);
+  }
+  hat.clear();
+  if (look.hat === 'wizard') {
+    add(hat, new THREE.CylinderGeometry(.52, .52, .05, 12), 0x7a68a8, 0, .22, 0);
+    const cone = add(hat, new THREE.ConeGeometry(.3, .62, 8), 0x7a68a8, 0, .54, -.03); cone.rotation.x = -.2;
+    add(hat, new THREE.SphereGeometry(.06, 6, 6), 0xffd98a, 0, .85, -.09);
+  } else if (look.hat === 'flowers') {
+    const cols = [0xffffff, 0xf7a1c4, 0xffe066, 0xb9a4f5];
+    for (let i = 0; i < 10; i++) { const a = i / 10 * Math.PI * 2; add(hat, new THREE.OctahedronGeometry(.055, 0), i % 2 ? 0x6fae4f : cols[i / 2 % 4 | 0], Math.sin(a) * .25, .15, Math.cos(a) * .25 - .02); }
+  } else if (look.hat === 'crown') {
+    const gold = mat(0xf2c94c, { metalness: .6, roughness: .3 });
+    add(hat, new THREE.CylinderGeometry(.23, .25, .1, 10), gold, 0, .22, -.02);
+    for (let i = 0; i < 6; i++) { const a = i / 6 * Math.PI * 2; add(hat, new THREE.ConeGeometry(.05, .16, 4), gold, Math.sin(a) * .23, .34, Math.cos(a) * .23 - .02);
+      if (i % 2 === 0) add(hat, new THREE.OctahedronGeometry(.035, 0), 0xff4d6d, Math.sin(a) * .25, .23, Math.cos(a) * .25 - .02); }
+  } else if (look.hat === 'bunny') {
+    for (const sx of [-1, 1]) { const e = add(hat, new THREE.SphereGeometry(.07, 8, 6), 0xffffff, sx * .1, .5, -.04); e.scale.set(1, 3.2, .6); e.rotation.z = -sx * .15;
+      const inner = add(hat, new THREE.SphereGeometry(.04, 6, 6), 0xf7a1c4, sx * .1, .5, 0); inner.scale.set(1, 3.6, .3); inner.rotation.z = -sx * .15; }
+  } else if (look.hat === 'cat') {
+    for (const sx of [-1, 1]) { const e = add(hat, new THREE.ConeGeometry(.09, .2, 4), M.hair, sx * .16, .27, .02); e.rotation.z = -sx * .25; }
+  }
+  hair.traverse(m => m.castShadow = true); hat.traverse(m => m.castShadow = true);
+}
+const P = { pos: new THREE.Vector3(), vy: 0, onGround: true, yaw: 0, speed: 0, dx: 0, dz: 1, phase: 0, idle: 0, sit: 0, jumpV: 10, runMul: 1, glide: false, hot: 0, scale: 1 };
+const cam = { yaw: Math.PI * .8, pitch: .32, dist: 9, tdist: 9, ui: 0, target: new THREE.Vector3() };
+
+/* ============ progress + save ============ */
+const SAVE = 'quietKingdom.v2';
+const progress = { map: 'kingdom', stars: 0, answered: 0, xp: 0, t: .31, maps: { kingdom: { opened: [] }, jungle: { opened: [] } } };
+function loadProgress() {
+  try {
+    const s = JSON.parse(localStorage.getItem(SAVE));
+    if (s) {
+      Object.assign(progress, s); progress.maps = Object.assign({ kingdom: { opened: [] }, jungle: { opened: [] } }, s.maps);
+      if (s.xp == null) progress.xp = progress.answered * 12 + (foundIn('kingdom') + foundIn('jungle')) * 50; // saves from before levels existed
+      return;
+    }
+    const v1 = JSON.parse(localStorage.getItem('quietKingdom.v1')); // carry over the first version's save
+    if (v1) { progress.maps.kingdom = { opened: v1.opened || [], x: v1.x, z: v1.z }; progress.t = v1.t ?? progress.t; }
+  } catch (e) {}
+}
+function saveProgress() {
+  progress.t = dayT; progress.map = mapId;
+  const mp = progress.maps[mapId]; mp.opened = W.chests.map(c => c.opened); mp.x = P.pos.x; mp.z = P.pos.z;
+  try { localStorage.setItem(SAVE, JSON.stringify(progress)); } catch (e) {}
+}
+const foundIn = id => (progress.maps[id].opened || []).filter(Boolean).length;
+function applyPerks() { const k = foundIn('kingdom'); P.jumpV = k >= 2 ? 13.5 : 10; P.runMul = k >= 4 ? 1.35 : 1; }
+function updateHUD() { $('snum').textContent = progress.stars; $('cnum').textContent = W.chests.filter(c => c.opened).length; updateProfile(); }
+
+/* ============ input ============ */
+const K = {}; let started = false, jumpQueued = false, jumpHeld = false, uiOpen = false, quizOpen = false, traveling = false;
+addEventListener('keydown', e => {
+  if (e.target.tagName === 'INPUT' && e.target.type === 'text') { if (e.key === 'Enter' || e.key === 'Escape') e.target.blur(); return; }
+  const k = e.key.toLowerCase(); if ([' ', 'arrowup', 'arrowdown', 'arrowleft', 'arrowright'].includes(k)) e.preventDefault();
+  if (quizOpen) { const i = ['1', '2', '3'].indexOf(k) >= 0 ? ['1', '2', '3'].indexOf(k) : ['a', 'b', 'c'].indexOf(k); if (i >= 0) answer(i); if (k === 'escape') closeQuiz(true); return; }
+  if (!K[k]) {
+    if (k === 'c' && started) setCloset(!uiOpen);
+    if (k === 'escape' && uiOpen) setCloset(false);
+    if (uiOpen) { K[k] = true; return; }
+    if (k === ' ') jumpQueued = true;
+    if (k === 'e') tryOpen();
+    if (k === 'm' && audio) audio.toggleMusic();
+    if (k === 'h') document.body.classList.toggle('hide-ui');
+  }
+  K[k] = true; P.idle = 0;
+});
+addEventListener('keyup', e => { K[e.key.toLowerCase()] = false; });
+addEventListener('blur', () => { for (const k in K) K[k] = false; jumpHeld = false; });
+let dragging = false, lastPointer = 'mouse';
+
+/* touch: left thumb = floating joystick, right thumb = look, two fingers = zoom */
+const joy = { id: null, x: 0, y: 0, ox: 0, oy: 0 }, looks = new Map(); let pinchD = 0;
+const joyEl = $('joy'), knob = joyEl.querySelector('.knob');
+function resetJoy() { joy.id = null; joy.x = joy.y = 0; joyEl.classList.remove('active'); joyEl.style.left = joyEl.style.top = joyEl.style.bottom = ''; knob.style.transform = ''; }
+canvas.addEventListener('pointerdown', e => {
+  lastPointer = e.pointerType;
+  if (e.pointerType === 'mouse' || !started) return;
+  try { canvas.setPointerCapture(e.pointerId); } catch (err) {}
+  P.idle = 0;
+  if (e.clientX < innerWidth * .45 && joy.id === null && !uiOpen) {
+    Object.assign(joy, { id: e.pointerId, ox: e.clientX, oy: e.clientY, x: 0, y: 0 });
+    joyEl.classList.add('active'); joyEl.style.left = (e.clientX - 60) + 'px'; joyEl.style.top = (e.clientY - 60) + 'px'; joyEl.style.bottom = 'auto';
+  } else { looks.set(e.pointerId, { x: e.clientX, y: e.clientY }); pinchD = 0; }
+});
+canvas.addEventListener('pointermove', e => {
+  if (e.pointerType === 'mouse') return;
+  if (e.pointerId === joy.id) {
+    let dx = e.clientX - joy.ox, dy = e.clientY - joy.oy; const d = Math.hypot(dx, dy), R = 55;
+    if (d > R) { dx *= R / d; dy *= R / d; }
+    joy.x = dx / R; joy.y = dy / R; knob.style.transform = `translate(${dx}px,${dy}px)`; return;
+  }
+  const p = looks.get(e.pointerId); if (!p) return;
+  const dx = e.clientX - p.x, dy = e.clientY - p.y; p.x = e.clientX; p.y = e.clientY;
+  if (looks.size >= 2) {
+    const [a, b] = [...looks.values()], d = Math.hypot(a.x - b.x, a.y - b.y);
+    if (pinchD && !uiOpen) cam.tdist = Math.min(24, Math.max(3.5, cam.tdist - (d - pinchD) * .03));
+    pinchD = d; return;
+  }
+  cam.yaw -= dx * (uiOpen ? .01 : .006);
+  if (!uiOpen) cam.pitch = Math.min(1.25, Math.max(-.25, cam.pitch + dy * .005));
+});
+const endTouch = e => { if (e.pointerId === joy.id) resetJoy(); looks.delete(e.pointerId); pinchD = 0; };
+canvas.addEventListener('pointerup', endTouch); canvas.addEventListener('pointercancel', endTouch);
+const tap = (id, fn) => $(id).addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); fn(); });
+tap('jump', () => { jumpQueued = true; jumpHeld = true; P.idle = 0; });
+for (const ev of ['pointerup', 'pointercancel', 'pointerleave']) $('jump').addEventListener(ev, () => jumpHeld = false);
+tap('tb-dress', () => started && setCloset(!uiOpen));
+tap('tb-music', () => audio && audio.toggleMusic());
+tap('tb-time', () => K.t = true);
+for (const ev of ['pointerup', 'pointercancel', 'pointerleave']) $('tb-time').addEventListener(ev, () => K.t = false);
+$('prompt').addEventListener('click', () => tryOpen());
+
+canvas.addEventListener('mousedown', () => { if (lastPointer !== 'mouse') return; dragging = true; if (started && !uiOpen && !quizOpen && document.pointerLockElement !== canvas) { try { const r = canvas.requestPointerLock(); if (r && r.catch) r.catch(() => {}); } catch (e) {} } });
+addEventListener('mouseup', () => dragging = false);
+addEventListener('mousemove', e => {
+  if (!started || quizOpen || lastPointer !== 'mouse' || (document.pointerLockElement !== canvas && !dragging)) return;
+  if (uiOpen) { cam.yaw -= e.movementX * .006; return; } // drag to spin the character preview
+  cam.yaw -= e.movementX * .0025; cam.pitch = Math.min(1.25, Math.max(-.25, cam.pitch + e.movementY * .0022));
+});
+addEventListener('wheel', e => { if (uiOpen || quizOpen) return; cam.tdist = Math.min(24, Math.max(3.5, cam.tdist + e.deltaY * .01)); }, { passive: true });
+
+/* ============ toasts + chests ============ */
+let toastTimer;
+function toast(a, b, head = '') { const t = $('toast'); t.querySelector('.t0').textContent = head; t.querySelector('.t1').textContent = a; t.querySelector('.t2').textContent = b; t.classList.add('on'); clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('on'), 6000); }
+let nearChest = null;
+function tryOpen() {
+  if (!nearChest || nearChest.opened || !started || quizOpen) return;
+  const c = nearChest; c.opened = true;
+  const n = W.chests.filter(ch => ch.opened).length, [name, text] = MAPS[mapId].treasures[Math.min(n - 1, 11)];
+  const got = giveStars(5); addXP(50); saveProgress(); applyPerks(); updateHUD();
+  toast(name, `${text} · +${got} ⭐ · +50 XP`, n === 12 ? `ရတနာ ၁၂ ခုလုံး တွေ့ပြီ! All 12 found ✦` : `ရတနာတွေ့ပြီ! Treasure ${n}/12`);
+  sparkle(c.x, c.y + .7, c.z);
+  if (audio) audio.chime();
+}
+
+/* ============ quiz content ============ */
+const ANIMALS = [['🐄', 'cow', 'နွား'], ['🐈', 'cat', 'ကြောင်'], ['🐕', 'dog', 'ခွေး'], ['🐘', 'elephant', 'ဆင်'], ['🐒', 'monkey', 'မျောက်'], ['🦒', 'giraffe', 'သစ်ကုလားအုတ်'],
+  ['🐧', 'penguin', 'ပင်ဂွင်း'], ['🦁', 'lion', 'ခြင်္သေ့'], ['🐅', 'tiger', 'ကျား'], ['🐼', 'panda', 'ပန်ဒါ'], ['🐇', 'rabbit', 'ယုန်'], ['🐸', 'frog', 'ဖား'], ['🐢', 'turtle', 'လိပ်'],
+  ['🐍', 'snake', 'မြွေ'], ['🦋', 'butterfly', 'လိပ်ပြာ'], ['🐝', 'bee', 'ပျား'], ['🐔', 'chicken', 'ကြက်'], ['🦆', 'duck', 'ဘဲ'], ['🐎', 'horse', 'မြင်း'], ['🐖', 'pig', 'ဝက်'],
+  ['🐑', 'sheep', 'သိုး'], ['🐐', 'goat', 'ဆိတ်'], ['🦊', 'fox', 'မြေခွေး'], ['🐻', 'bear', 'ဝက်ဝံ'], ['🦓', 'zebra', 'မြင်းကျား'], ['🐊', 'crocodile', 'မိကျောင်း'],
+  ['🐬', 'dolphin', 'လင်းပိုင်'], ['🐳', 'whale', 'ဝေလငါး'], ['🐙', 'octopus', 'ရေဘဝဲ'], ['🦀', 'crab', 'ဂဏန်း'], ['🦉', 'owl', 'ဇီးကွက်'], ['🐌', 'snail', 'ခရု'],
+  ['🐿️', 'squirrel', 'ရှဉ့်'], ['🐁', 'mouse', 'ကြွက်'], ['🐟', 'fish', 'ငါး'], ['🦜', 'parrot', 'ကြက်တူရွေး'], ['🐪', 'camel', 'ကုလားအုတ်'], ['🦘', 'kangaroo', 'သားပိုက်ကောင်']];
+const WORDS = [['🍎', 'apple', 'ပန်းသီး'], ['🍌', 'banana', 'ငှက်ပျောသီး'], ['🥭', 'mango', 'သရက်သီး'], ['🍉', 'watermelon', 'ဖရဲသီး'], ['🍊', 'orange', 'လိမ္မော်သီး'], ['🍇', 'grapes', 'စပျစ်သီး'],
+  ['☀️', 'sun', 'နေ'], ['🌙', 'moon', 'လ'], ['⭐', 'star', 'ကြယ်'], ['🌧️', 'rain', 'မိုး'], ['☁️', 'cloud', 'တိမ်'], ['🏠', 'house', 'အိမ်'], ['📚', 'book', 'စာအုပ်'], ['✏️', 'pencil', 'ခဲတံ'],
+  ['🚗', 'car', 'ကား'], ['🚲', 'bicycle', 'စက်ဘီး'], ['✈️', 'airplane', 'လေယာဉ်'], ['🌳', 'tree', 'သစ်ပင်'], ['🌸', 'flower', 'ပန်း'], ['👟', 'shoes', 'ဖိနပ်'], ['🪑', 'chair', 'ကုလားထိုင်'],
+  ['⏰', 'clock', 'နာရီ'], ['🎒', 'bag', 'လွယ်အိတ်'], ['🍚', 'rice', 'ထမင်း'], ['💧', 'water', 'ရေ'], ['🥚', 'egg', 'ကြက်ဥ'], ['🔥', 'fire', 'မီး'], ['⛰️', 'mountain', 'တောင်'],
+  ['🌊', 'sea', 'ပင်လယ်'], ['🚌', 'bus', 'ဘတ်စ်ကား'], ['☂️', 'umbrella', 'ထီး'], ['🔑', 'key', 'သော့'], ['🥛', 'milk', 'နို့'], ['👕', 'shirt', 'အင်္ကျီ'], ['🏫', 'school', 'ကျောင်း'], ['🚪', 'door', 'တံခါး']];
+const COLORS = [['#e53935', 'red', 'အနီရောင်'], ['#1e88e5', 'blue', 'အပြာရောင်'], ['#43a047', 'green', 'အစိမ်းရောင်'], ['#fdd835', 'yellow', 'အဝါရောင်'], ['#fb8c00', 'orange', 'လိမ္မော်ရောင်'],
+  ['#8e24aa', 'purple', 'ခရမ်းရောင်'], ['#f48fb1', 'pink', 'ပန်းရောင်'], ['#212121', 'black', 'အနက်ရောင်'], ['#fafafa', 'white', 'အဖြူရောင်'], ['#795548', 'brown', 'အညိုရောင်']];
+// [picture, English question, Burmese question, correct, wrong, wrong]; answers are "english|မြန်မာ" or plain numbers
+const FACTS = [
+  ['🕷️', 'How many legs does a spider have?', 'ပင့်ကူမှာ ခြေထောက် ဘယ်နှချောင်း ရှိလဲ?', '8', '6', '4'],
+  ['📅', 'How many days are in a week?', 'တစ်ပတ်မှာ ဘယ်နှရက် ရှိလဲ?', '7', '5', '10'],
+  ['🗓️', 'How many months are in a year?', 'တစ်နှစ်မှာ ဘယ်နှလ ရှိလဲ?', '12', '10', '6'],
+  ['🥛', 'Which animal gives us milk?', 'ဘယ်အကောင်က နို့ပေးလဲ?', 'cow|နွား', 'fish|ငါး', 'bird|ငှက်'],
+  ['🐝', 'What do bees make?', 'ပျားတွေက ဘာကို လုပ်လဲ?', 'honey|ပျားရည်', 'milk|နို့', 'bread|ပေါင်မုန့်'],
+  ['🌱', 'What do plants need to grow?', 'အပင်တွေ ကြီးထွားဖို့ ဘာလိုလဲ?', 'sun & water|နေရောင်နဲ့ ရေ', 'candy|သကြားလုံး', 'only sand|သဲ သက်သက်'],
+  ['🧊', 'Ice is made of…', 'ရေခဲက ဘာကနေ ဖြစ်လာတာလဲ?', 'water|ရေ', 'milk|နို့', 'stone|ကျောက်'],
+  ['🐟', 'Where do fish live?', 'ငါးတွေ ဘယ်မှာ နေလဲ?', 'in water|ရေထဲမှာ', 'in trees|သစ်ပင်ပေါ်မှာ', 'in the sky|ကောင်းကင်မှာ'],
+  ['🌈', 'How many colors are in a rainbow?', 'သက်တံမှာ အရောင် ဘယ်နှရောင် ရှိလဲ?', '7', '5', '3'],
+  ['☀️', 'What gives us light in the daytime?', 'နေ့ခင်းမှာ အလင်းရောင် ဘာက ပေးလဲ?', 'the Sun|နေ', 'the Moon|လ', 'a lamp|မီးအိမ်'],
+  ['🐦', 'Which animal can fly?', 'ဘယ်အကောင်က ပျံနိုင်လဲ?', 'bird|ငှက်', 'cat|ကြောင်', 'fish|ငါး'],
+  ['🐱', 'A baby cat is called a…', 'ကြောင်ပေါက်စလေးကို English လို ဘယ်လိုခေါ်လဲ?', 'kitten', 'puppy', 'calf'],
+  ['🐶', 'A baby dog is called a…', 'ခွေးပေါက်စလေးကို English လို ဘယ်လိုခေါ်လဲ?', 'puppy', 'kitten', 'chick'],
+  ['⏰', 'How many hours are in one day?', 'တစ်ရက်မှာ ဘယ်နှနာရီ ရှိလဲ?', '24', '12', '10'],
+  ['🐳', 'What is the biggest animal in the sea?', 'ပင်လယ်ထဲမှာ အကြီးဆုံး သတ္တဝါက ဘာလဲ?', 'blue whale|ဝေလငါး', 'shark|ငါးမန်း', 'crab|ဂဏန်း'],
+  ['👀', 'What do we use to see?', 'ဘာနဲ့ ကြည့်ကြလဲ?', 'eyes|မျက်လုံး', 'ears|နား', 'nose|နှာခေါင်း'],
+  ['🌍', 'Which planet do we live on?', 'ကျွန်ုပ်တို့ ဘယ်ဂြိုဟ်ပေါ်မှာ နေကြလဲ?', 'Earth|ကမ္ဘာ', 'Mars|အင်္ဂါဂြိုဟ်', 'the Moon|လ'],
+  ['🔺', 'Which shape has 3 sides?', 'ဘေး ၃ ဖက် ရှိတဲ့ ပုံက ဘာလဲ?', 'triangle|တြိဂံ', 'square|စတုရန်း', 'circle|စက်ဝိုင်း'],
+  ['⬛', 'How many sides does a square have?', 'စတုရန်းမှာ ဘေး ဘယ်နှဖက် ရှိလဲ?', '4', '3', '5'],
+  ['🐸', 'Baby frogs are called…', 'ဖားပေါက်စလေးတွေကို ဘာလို့ ခေါ်လဲ?', 'tadpoles|ဖားလောင်း', 'chicks|ကြက်ပေါက်', 'kittens|ကြောင်ပေါက်'],
+  ['🌌', 'When can we usually see the stars?', 'ကြယ်တွေကို ဘယ်အချိန်မှာ မြင်ရလဲ?', 'at night|ညဘက်', 'at noon|မွန်းတည့်', 'never|ဘယ်တော့မှ'],
+  ['🪥', 'How many times a day should you brush your teeth?', 'တစ်ရက်ကို သွား ဘယ်နှကြိမ် တိုက်သင့်လဲ?', '2', '0', '10'],
+  ['🧺', 'Which one is a fruit?', 'ဘယ်ဟာက အသီးလဲ?', '🍎 apple|ပန်းသီး', '🥕 carrot|မုန်လာဥနီ', '🍞 bread|ပေါင်မုန့်'],
+  ['🌡️', 'Which one is the hottest?', 'ဘယ်ဟာ အပူဆုံးလဲ?', '🔥 fire|မီး', '🧊 ice|ရေခဲ', '❄️ snow|နှင်း'],
+  ['🌳', 'What do trees give us to breathe?', 'သစ်ပင်တွေက ကျွန်ုပ်တို့ ရှူဖို့ ဘာပေးလဲ?', 'oxygen|အောက်ဆီဂျင်', 'smoke|မီးခိုး', 'sand|သဲ'],
+  ['🐧', 'Where do penguins live?', 'ပင်ဂွင်းတွေ ဘယ်မှာ နေလဲ?', 'cold icy places|အေးတဲ့ ရေခဲဒေသ', 'the desert|သဲကန္တာရ', 'the jungle|တောထဲ'],
+  ['🦒', 'Which animal has a very long neck?', 'ဘယ်အကောင်က လည်ပင်း အရှည်ကြီး ရှိလဲ?', 'giraffe|သစ်ကုလားအုတ်', 'pig|ဝက်', 'duck|ဘဲ'],
+  ['🐫', 'Which animal lives in the desert?', 'သဲကန္တာရမှာ ဘယ်အကောင် နေလဲ?', 'camel|ကုလားအုတ်', 'penguin|ပင်ဂွင်း', 'dolphin|လင်းပိုင်']
+];
+const opt = s => { const [t, m] = String(s).split('|'); return { t, s: m || '' }; };
+function level() { return progress.answered < 10 ? 0 : progress.answered < 30 ? 1 : progress.answered < 60 ? 2 : 3; }
+function numberOpts(ans) {
+  const set = new Set([ans]), spread = ans > 20 ? [1, 2, 10, 5, 3] : [1, 2, 3, 4];
+  while (set.size < 3) { const d = pick(spread) * (Math.random() < .5 ? -1 : 1), v = ans + d; if (v >= 0) set.add(v); }
+  return [...set].map(v => ({ t: String(v) }));
+}
+function mathQ() {
+  const L = level(), r = (lo, hi) => lo + Math.floor(Math.random() * (hi - lo + 1));
+  const kind = pick(L === 0 ? ['add', 'add', 'sub', 'mul'] : L === 1 ? ['add', 'sub', 'mul', 'mul', 'word'] : ['add', 'sub', 'mul', 'mul', 'div', 'word']);
+  let a, b, ans, q, qm = 'အဖြေကို မှန်အောင်ဖြေပြီး ဆုရယူပါ ✨', pic = '';
+  if (kind === 'add') { a = r(1, L ? 40 : 10); b = r(1, L ? 40 : 10); ans = a + b; q = `${a} + ${b} = ?`; }
+  else if (kind === 'sub') { a = r(3, L ? 60 : 15); b = r(1, a - 1); ans = a - b; q = `${a} − ${b} = ?`; }
+  else if (kind === 'mul') { a = pick(L <= 1 ? [2, 3, 4, 5, 10] : [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]); b = r(1, L >= 3 ? 12 : 10); ans = a * b; q = `${a} × ${b} = ?`; }
+  else if (kind === 'div') { b = r(2, L >= 3 ? 12 : 9); ans = r(1, 10); a = b * ans; q = `${a} ÷ ${b} = ?`; }
+  else {
+    const w = r(0, 2);
+    if (w === 0) { a = r(2, 6); b = r(2, 6); ans = a * b; pic = '🍎'; q = `${a} bags with ${b} apples each. How many apples?`; qm = `အိတ် ${a} အိတ်မှာ ပန်းသီး ${b} လုံးစီ ရှိတယ်။ စုစုပေါင်း ဘယ်နှလုံးလဲ?`; }
+    else if (w === 1) { a = r(3, 20); b = r(2, 15); ans = a + b; pic = '🐟'; q = `You have ${a} fish and catch ${b} more. How many now?`; qm = `ငါး ${a} ကောင် ရှိတယ်၊ နောက်ထပ် ${b} ကောင် ဖမ်းမိတယ်။ အခု ဘယ်နှကောင်လဲ?`; }
+    else { b = r(2, 5); ans = r(2, 6); a = b * ans; pic = '🍬'; q = `${a} candies shared by ${b} kids. How many each?`; qm = `သကြားလုံး ${a} လုံးကို ကလေး ${b} ယောက် ညီတူ ခွဲမယ်။ တစ်ယောက် ဘယ်နှလုံး ရလဲ?`; }
+  }
+  const opts = shuffle(numberOpts(ans));
+  return { subj: 'math', pic, q, qm, opts, ans: opts.findIndex(o => o.t === String(ans)) };
+}
+function pickThree(list) { const s = shuffle(list.slice()); return [s[0], s[1], s[2]]; }
+function build(subj, pic, q, qm, correct, wrongs) {
+  const opts = shuffle([{ ...correct, ok: true }, ...wrongs]);
+  return { subj, pic, q, qm, opts, ans: opts.findIndex(o => o.ok) };
+}
+function animalQ() {
+  const [a, b, c] = pickThree(ANIMALS);
+  if (Math.random() < .6) return build('animal', a[0], 'What animal is this?', 'ပုံထဲက ဘာအကောင်လေးလဲ?', { t: a[1], s: a[2] }, [{ t: b[1], s: b[2] }, { t: c[1], s: c[2] }]);
+  return build('animal', '', `Find the ${a[1]}!`, `${a[2]} ကို ရွေးပါ`, { t: a[0], emo: true }, [{ t: b[0], emo: true }, { t: c[0], emo: true }]);
+}
+function englishQ() {
+  const v = Math.random();
+  if (v < .2) { const [a, b, c] = pickThree(COLORS); return build('english', { color: a[0] }, 'What color is this?', 'ဒါ ဘာအရောင်လဲ?', { t: a[1], s: a[2] }, [{ t: b[1], s: b[2] }, { t: c[1], s: c[2] }]); }
+  const [a, b, c] = pickThree(WORDS);
+  if (v < .55) return build('english', a[0], 'What is this in English?', 'ဒါကို English လို ဘယ်လိုခေါ်လဲ?', { t: a[1] }, [{ t: b[1] }, { t: c[1] }]);
+  if (v < .8) return build('english', '', `“${a[2]}” in English is…`, `“${a[2]}” ကို English လို ဘယ်လိုခေါ်လဲ?`, { t: a[1] }, [{ t: b[1] }, { t: c[1] }]);
+  return build('english', '', `What does “${a[1]}” mean?`, `“${a[1]}” ဆိုတာ ဘာလဲ?`, { t: a[2] }, [{ t: b[2] }, { t: c[2] }]);
+}
+let lastFact = -1;
+function knowQ() {
+  let i; do { i = Math.floor(Math.random() * FACTS.length); } while (i === lastFact); lastFact = i;
+  const f = FACTS[i];
+  return build('know', f[0], f[1], f[2], opt(f[3]), [opt(f[4]), opt(f[5])]);
+}
+const makeQuestion = subj => ({ math: mathQ, animal: animalQ, english: englishQ, know: knowQ })[subj]();
+
+/* ============ quiz + rewards ============ */
+const REWARDS = [
+  { id: 'fly', icon: '🪽', t: 15, w: 3, en: 'Fly for 15 seconds! Hold Jump to go up.', mm: '၁၅ စက္ကန့် ပျံသန်းနိုင်ပြီ! Jump ကို ဖိထားရင် အပေါ်တက်မယ်' },
+  { id: 'speed', icon: '⚡', t: 15, w: 3, en: 'Super speed for 15 seconds!', mm: '၁၅ စက္ကန့် အမြန်ကြီး ပြေးနိုင်ပြီ!' },
+  { id: 'jump', icon: '🦘', t: 15, w: 3, en: 'Super jump for 15 seconds!', mm: '၁၅ စက္ကန့် အမြင့်ကြီး ခုန်နိုင်ပြီ!' },
+  { id: 'rainbow', icon: '🌈', t: 20, w: 2, en: 'Rainbow trail for 20 seconds!', mm: '၂၀ စက္ကန့် သက်တံရောင် လမ်းကြောင်း!' },
+  { id: 'giant', icon: '🦖', t: 15, w: 2, en: 'Giant mode for 15 seconds!', mm: '၁၅ စက္ကန့် ကိုယ်ခန္ဓာ အကြီးကြီး ဖြစ်သွားပြီ!' },
+  { id: 'tiny', icon: '🐭', t: 15, w: 1, en: 'Tiny mode for 15 seconds!', mm: '၁၅ စက္ကန့် ကိုယ်ခန္ဓာ သေးသေးလေး ဖြစ်သွားပြီ!' },
+  { id: 'compass', icon: '🧭', t: 30, w: 2, en: 'Treasure compass for 30 seconds — follow the arrow!', mm: '၃၀ စက္ကန့် ရတနာလမ်းပြ မြှား — မြှားနောက် လိုက်ပါ!' },
+  { id: 'double', icon: '✨', t: 30, w: 2, en: 'Double stars for 30 seconds!', mm: '၃၀ စက္ကန့် ကြယ် နှစ်ဆ ရမယ်!' },
+  { id: 'glow', icon: '💡', t: 30, w: 2, en: 'Glow light for 30 seconds!', mm: '၃၀ စက္ကန့် ကိုယ်တိုင် အလင်းထွက်နေပြီ!' }
+];
+const powers = {}, powerMax = {}, powerIcon = {};
+for (const r of REWARDS) { powers[r.id] = 0; powerMax[r.id] = r.t; powerIcon[r.id] = r.icon; }
+function pickReward() { const tot = REWARDS.reduce((s, r) => s + r.w, 0); let x = Math.random() * tot; for (const r of REWARDS) if ((x -= r.w) < 0) return r; return REWARDS[0]; }
+function giveStars(n) { const got = n * (powers.double > 0 ? 2 : 1); progress.stars += got; return got; }
+
+/* ============ levels ============ */
+const LEVELS = [[0, 'Beginner', 'အစပြုသူ', '🌱'], [60, 'Rookie', 'လေ့လာသူ', '🍃'], [150, 'Explorer', 'စူးစမ်းသူ', '🧭'], [280, 'Adventurer', 'စွန့်စားသူ', '🗺️'],
+  [450, 'Hero', 'သူရဲကောင်း', '🛡️'], [680, 'Champion', 'ချန်ပီယံ', '🏆'], [1000, 'Master', 'ကျွမ်းကျင်သူ', '🎓'], [1400, 'Legend', 'ဒဏ္ဍာရီ', '👑']];
+function levelOf(xp) { let i = 0; while (i + 1 < LEVELS.length && xp >= LEVELS[i + 1][0]) i++; return i; }
+function addXP(n) {
+  const before = levelOf(progress.xp); progress.xp += n; const after = levelOf(progress.xp);
+  updateProfile();
+  if (after > before) {
+    const [, en, mm, icon] = LEVELS[after], bonus = giveStars(10);
+    // wait for the quiz/treasure message to finish before celebrating
+    setTimeout(() => {
+      toast(`${icon} Level ${after + 1} · ${en}`, `${mm} ဖြစ်သွားပြီ! · +${bonus} ⭐ · 🪽 free flight!`, '⬆ LEVEL UP! အဆင့်တက်ပြီ!');
+      givePower(REWARDS[0], true); sparkle(P.pos.x, P.pos.y + 1, P.pos.z, 0xffe3a3);
+      if (audio) { audio.chime(); setTimeout(() => audio.chime(), 350); }
+      updateHUD(); saveProgress();
+    }, 3200);
+  }
+}
+function updateProfile() {
+  const i = levelOf(progress.xp), [base, en, mm, icon] = LEVELS[i], next = LEVELS[i + 1];
+  $('ptxt').innerHTML = '';
+  $('ptxt').append(`${icon} Lv ${i + 1} · ${en} `, Object.assign(document.createElement('small'), { className: 'mm', textContent: mm }));
+  $('xpbar').firstElementChild.style.width = next ? ((progress.xp - base) / (next[0] - base) * 100) + '%' : '100%';
+  updateNameTag();
+}
+// floating name tag above the traveler's head
+const tagCanvas = document.createElement('canvas'); tagCanvas.width = 512; tagCanvas.height = 160;
+const tagTex = new THREE.CanvasTexture(tagCanvas); tagTex.colorSpace = THREE.SRGBColorSpace;
+function updateNameTag() {
+  const x = tagCanvas.getContext('2d'), i = levelOf(progress.xp), [, en, mm, icon] = LEVELS[i];
+  x.clearRect(0, 0, 512, 160); x.textAlign = 'center'; x.textBaseline = 'middle';
+  x.fillStyle = 'rgba(20,26,48,.55)'; x.beginPath(); if (x.roundRect) x.roundRect(36, 8, 440, 144, 40); else x.rect(36, 8, 440, 144); x.fill();
+  x.fillStyle = '#fffaf0'; x.font = "700 50px Quicksand, Padauk, 'Myanmar Text', sans-serif"; x.fillText(look.name || 'Traveler', 256, 52);
+  x.fillStyle = '#ffd98a'; x.font = "700 32px Quicksand, Padauk, 'Myanmar Text', sans-serif"; x.fillText(`${icon} Lv ${i + 1} ${en} · ${mm}`, 256, 112);
+  tagTex.needsUpdate = true;
+}
+const PRAISE = ['မှန်တယ်! Correct! 🎉', 'တော်လိုက်တာ! Great job! 🌟', 'အရမ်းတော်တယ်! Awesome! 🎊', 'ဟုတ်ပြီ! You got it! ✨'];
+const TRY_AGAIN = ['မှားသွားတယ် — ထပ်ကြိုးစားကြည့်ပါ 💪 Try again!', 'နီးပါပြီ! ထပ်ဖြေကြည့်ပါ 😊 Almost!', 'ရပါတယ်၊ နောက်တစ်ခါ ကြိုးစားကြည့် 🌱 You can do it!'];
+let quiz = null;
+function openQuiz(stone) {
+  const q = makeQuestion(stone.subj), S = SUBJ[stone.subj];
+  quiz = { stone, q, tries: 0, done: false };
+  quizOpen = true; resetJoy(); for (const k in K) K[k] = false; jumpHeld = false;
+  if (document.pointerLockElement) document.exitPointerLock();
+  const sub = $('q-subject'); sub.textContent = `${S.icon} ${S.en} · ${S.mm}`; sub.style.background = S.css;
+  const picEl = $('q-pic'); picEl.innerHTML = '';
+  if (q.pic && q.pic.color) { const sw = document.createElement('span'); sw.className = 'swatch'; sw.style.background = q.pic.color; picEl.appendChild(sw); }
+  else picEl.textContent = q.pic || '';
+  $('q-text').textContent = q.q; $('q-sub').textContent = q.qm; $('q-msg').innerHTML = '';
+  const box = $('q-opts'); box.innerHTML = '';
+  q.opts.forEach((o, i) => {
+    const b = document.createElement('button'); b.className = 'qo';
+    const letter = document.createElement('b'); letter.textContent = 'abc'[i]; b.appendChild(letter);
+    const span = document.createElement('span');
+    if (o.emo) { span.className = 'emo'; span.textContent = o.t; }
+    else { span.textContent = o.t; if (o.s) { const sm = document.createElement('small'); sm.className = 'mm'; sm.textContent = o.s; span.appendChild(sm); } }
+    b.appendChild(span); b.onclick = () => answer(i); box.appendChild(b);
+  });
+  $('quiz').classList.add('on');
+  if (audio) audio.pop();
+}
+function answer(i) {
+  if (!quiz || quiz.done) return;
+  const btn = $('q-opts').children[i]; if (!btn || btn.disabled) return;
+  if (i === quiz.q.ans) {
+    quiz.done = true; btn.classList.add('right');
+    const won = giveStars(Math.max(1, 3 - quiz.tries)), rw = pickReward();
+    progress.answered++; addXP(quiz.tries === 0 ? 15 : 10); updateHUD(); saveProgress();
+    $('q-msg').innerHTML = '';
+    const m1 = document.createElement('div'); m1.textContent = `${pick(PRAISE)}  +${won} ⭐ +${quiz.tries === 0 ? 15 : 10} XP`;
+    const m2 = document.createElement('span'); m2.className = 'rw'; m2.textContent = `🎁 ${rw.icon} ${rw.mm} · ${rw.en}`;
+    $('q-msg').append(m1, m2);
+    if (audio) audio.chime();
+    const q = quiz;
+    setTimeout(() => { if (quiz === q) { closeQuiz(false); givePower(rw); q.stone.state = 'gone'; q.stone.t = 0; sparkle(q.stone.x, q.stone.y + 1.5, q.stone.z, SUBJ[q.stone.subj].color); } }, 2200);
+  } else {
+    quiz.tries++; btn.classList.add('wrong'); btn.disabled = true;
+    $('q-msg').textContent = pick(TRY_AGAIN);
+    if (audio) audio.boop();
+  }
+}
+function closeQuiz(later) {
+  $('quiz').classList.remove('on'); quizOpen = false;
+  if (later && quiz) quiz.stone.cool = true;
+  quiz = null;
+}
+$('q-later').onclick = () => closeQuiz(true);
+function givePower(r, silent) {
+  powers[r.id] = r.t;
+  if (r.id === 'fly') { P.vy = 12; P.onGround = false; }
+  if (r.id === 'giant') powers.tiny = 0;
+  if (r.id === 'tiny') powers.giant = 0;
+  if (!silent) toast(`${r.icon} ${r.mm}`, r.en, 'ဆုရပြီ! Reward');
+}
+
+/* ============ lofi audio engine ============ */
+let audio = null;
+class Lofi {
+  constructor() {
+    const ctx = this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+    this.out = ctx.createGain(); this.out.gain.value = 0;
+    const comp = ctx.createDynamicsCompressor(); comp.threshold.value = -16; comp.ratio.value = 3;
+    this.out.connect(comp); comp.connect(ctx.destination);
+    const lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 2300; lp.Q.value = .4; lp.connect(this.out);
+    this.music = ctx.createGain(); this.music.connect(lp); this.musicOn = true;
+    this.verb = ctx.createConvolver(); this.verb.buffer = this.impulse(3); const vg = ctx.createGain(); vg.gain.value = .5; this.verb.connect(vg); vg.connect(this.out);
+    this.verbSend = ctx.createGain(); this.verbSend.connect(this.verb);
+    this.drums = ctx.createGain(); this.drums.gain.value = .9; const dl = ctx.createBiquadFilter(); dl.type = 'lowpass'; dl.frequency.value = 3800; this.drums.connect(dl); dl.connect(this.music);
+    this.amb = ctx.createGain(); this.amb.connect(this.out);
+    this.noise = this.makeNoise(2);
+    this.bpm = 72; this.s16 = 60 / this.bpm / 4; this.step = 0; this.bar = 0; this.next = ctx.currentTime + .3;
+    this.P1 = [{ r: 41, n: [57, 60, 64, 67] }, { r: 40, n: [55, 59, 62, 64] }, { r: 38, n: [53, 57, 60, 64] }, { r: 43, n: [53, 57, 59, 64] }];
+    this.P2 = [{ r: 36, n: [52, 55, 59, 62] }, { r: 45, n: [55, 59, 60, 64] }, { r: 38, n: [53, 57, 60, 65] }, { r: 43, n: [53, 55, 59, 62] }];
+    this.isDay = true;
+  }
+  impulse(sec) { const r = this.ctx.sampleRate, len = r * sec, b = this.ctx.createBuffer(2, len, r); for (let c = 0; c < 2; c++) { const d = b.getChannelData(c); for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 2.6); } return b; }
+  makeNoise(sec) { const r = this.ctx.sampleRate, b = this.ctx.createBuffer(1, r * sec, r), d = b.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1; return b; }
+  mtof(n) { return 440 * Math.pow(2, (n - 69) / 12); }
+  start() {
+    const ctx = this.ctx, now = ctx.currentTime; ctx.resume();
+    this.out.gain.setValueAtTime(0, now); this.out.gain.linearRampToValueAtTime(.75, now + 4);
+    const r = ctx.sampleRate, cb = ctx.createBuffer(1, r * 4, r), cd = cb.getChannelData(0);
+    for (let i = 0; i < cd.length; i++) cd[i] = (Math.random() * 2 - 1) * .01 + (Math.random() < .0005 ? (Math.random() * 2 - 1) * .5 : 0);
+    const cs = ctx.createBufferSource(); cs.buffer = cb; cs.loop = true; const hp = ctx.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 900;
+    const cg = ctx.createGain(); cg.gain.value = .35; cs.connect(hp); hp.connect(cg); cg.connect(this.music); cs.start();
+    const ws = ctx.createBufferSource(); ws.buffer = this.noise; ws.loop = true; const wl = ctx.createBiquadFilter(); wl.type = 'lowpass'; wl.frequency.value = 420;
+    const wg = ctx.createGain(); wg.gain.value = .05; const lfo = ctx.createOscillator(); lfo.frequency.value = .06; const lg = ctx.createGain(); lg.gain.value = .035; lfo.connect(lg); lg.connect(wg.gain);
+    ws.connect(wl); wl.connect(wg); wg.connect(this.amb); ws.start(); lfo.start();
+    setInterval(() => this.tick(), 25);
+    this.birds();
+  }
+  toggleMusic() { this.musicOn = !this.musicOn; this.music.gain.setTargetAtTime(this.musicOn ? 1 : 0, this.ctx.currentTime, .4); toast(this.musicOn ? 'Music on ♪' : 'Music off', this.musicOn ? 'သီချင်း ဖွင့်ထားတယ်' : 'သီချင်း ပိတ်ထားတယ်', 'Sound'); }
+  tick() { while (this.next < this.ctx.currentTime + .2) { this.play(this.step, this.next); this.next += this.s16; this.step = (this.step + 1) % 16; if (this.step === 0) this.bar++; } }
+  play(step, t) {
+    if (step % 2) t += this.s16 * .16;
+    const prog = Math.floor(this.bar / 4) % 2 ? this.P2 : this.P1, ch = prog[this.bar % 4];
+    if (step === 0) { this.chord(ch.n, t, this.s16 * 15, .075); this.bass(ch.r, t, this.s16 * 7); }
+    if (step === 10 && Math.random() < .45) this.chord(ch.n, t, this.s16 * 5, .04);
+    if (step === 8 && Math.random() < .6) this.bass(ch.r + (Math.random() < .5 ? 7 : 12), t, this.s16 * 4);
+    const drums = this.bar >= 2 && this.bar % 16 < 14;
+    if (drums) {
+      if (step === 0 || step === 10 || (step === 7 && Math.random() < .3)) this.kick(t);
+      if (step === 4 || step === 12) this.snare(t);
+      if (step % 2 === 0) this.hat(t, step % 4 === 2 ? .045 : .025);
+    }
+    if (this.bar >= 4 && step % 2 === 0 && Math.random() < .16) { const sc = [72, 74, 76, 79, 81, 84, 86]; this.bell(sc[Math.floor(Math.random() * sc.length)], t, .05, this.music); }
+  }
+  voice(f, t, dur, vol, dest, type2 = 'triangle', mix2 = .15, mul2 = 2) {
+    const ctx = this.ctx, o1 = ctx.createOscillator(), o2 = ctx.createOscillator(), g = ctx.createGain(), g2 = ctx.createGain();
+    o1.type = 'sine'; o2.type = type2; o1.frequency.value = f; o2.frequency.value = f * mul2;
+    const wob = Math.sin(t * .8) * 7; o1.detune.value = wob; o2.detune.value = wob + 4;
+    g2.gain.value = mix2; o1.connect(g); o2.connect(g2); g2.connect(g);
+    g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(vol, t + .02); g.gain.exponentialRampToValueAtTime(vol * .35, t + .7); g.gain.exponentialRampToValueAtTime(.0001, t + dur);
+    g.connect(dest); const s = ctx.createGain(); s.gain.value = .35; g.connect(s); s.connect(this.verbSend);
+    o1.start(t); o2.start(t); o1.stop(t + dur + .05); o2.stop(t + dur + .05);
+  }
+  chord(notes, t, dur, vol) { notes.forEach((n, i) => this.voice(this.mtof(n), t + i * .014 + Math.random() * .01, dur, vol, this.music)); }
+  bass(n, t, dur) { this.voice(this.mtof(n - 12), t, dur, .16, this.music, 'sine', .08, 2); }
+  bell(n, t, vol, dest) { this.voice(this.mtof(n), t, 1.8, vol, dest, 'sine', .25, 3.01); }
+  kick(t) { const ctx = this.ctx, o = ctx.createOscillator(), g = ctx.createGain(); o.frequency.setValueAtTime(115, t); o.frequency.exponentialRampToValueAtTime(42, t + .14); g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(.55, t + .005); g.gain.exponentialRampToValueAtTime(.001, t + .4); o.connect(g); g.connect(this.drums); o.start(t); o.stop(t + .45); }
+  noiseHit(t, type, freq, vol, dec, q = .8) { const ctx = this.ctx, s = ctx.createBufferSource(), f = ctx.createBiquadFilter(), g = ctx.createGain(); s.buffer = this.noise; f.type = type; f.frequency.value = freq; f.Q.value = q; g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(.001, t + dec); s.connect(f); f.connect(g); g.connect(this.drums); s.start(t, Math.random()); s.stop(t + dec + .05); return g; }
+  snare(t) { const g = this.noiseHit(t, 'bandpass', 1700, .2, .22); const s = this.ctx.createGain(); s.gain.value = .5; g.connect(s); s.connect(this.verbSend); }
+  hat(t, v) { this.noiseHit(t, 'highpass', 7000, v, .045, .5); }
+  chime() { const t = this.ctx.currentTime + .02; [72, 76, 79, 84, 88, 91].forEach((n, i) => this.bell(n, t + i * .09, .09, this.amb)); }
+  pop() { const t = this.ctx.currentTime + .01; [79, 86].forEach((n, i) => this.bell(n, t + i * .07, .07, this.amb)); }
+  boop() { const ctx = this.ctx, t = ctx.currentTime, o = ctx.createOscillator(), g = ctx.createGain(); o.type = 'sine'; o.frequency.setValueAtTime(330, t); o.frequency.exponentialRampToValueAtTime(220, t + .25);
+    g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(.08, t + .02); g.gain.exponentialRampToValueAtTime(.0001, t + .35); o.connect(g); g.connect(this.amb); o.start(t); o.stop(t + .4); }
+  birds() {
+    const go = () => {
+      if (this.isDay) { const ctx = this.ctx, t = ctx.currentTime, pan = ctx.createStereoPanner(); pan.pan.value = Math.random() * 1.6 - .8; pan.connect(this.amb);
+        const base = 2600 + Math.random() * 1500, n = 2 + Math.floor(Math.random() * 4);
+        for (let i = 0; i < n; i++) { const o = ctx.createOscillator(), g = ctx.createGain(), s = t + i * (.11 + Math.random() * .05);
+          o.frequency.setValueAtTime(base, s); o.frequency.exponentialRampToValueAtTime(base * (1.25 + Math.random() * .3), s + .06);
+          g.gain.setValueAtTime(.0001, s); g.gain.exponentialRampToValueAtTime(.018, s + .01); g.gain.exponentialRampToValueAtTime(.0001, s + .08);
+          o.connect(g); g.connect(pan); o.start(s); o.stop(s + .1); } }
+      setTimeout(go, (mapId === 'jungle' ? 2500 : 4000) + Math.random() * 8000);
+    };
+    setTimeout(go, 3000);
+  }
+}
+
+/* ============ day / night ============ */
+const PAL = {
+  night: { top: 0x0b1330, bot: 0x26345c, fog: 0x1e2a4c, sun: 0x8fa6ff, hemi: 0x3a4775, ground: 0x1a2030 },
+  dusk: { top: 0x4e62a8, bot: 0xffb48a, fog: 0xeaa98f, sun: 0xffa566, hemi: 0xc9a2b8, ground: 0x5a4a3a },
+  day: { top: 0x4a9ee8, bot: 0xd4ecff, fog: 0xc4e2f4, sun: 0xfff1d6, hemi: 0xcfe6ff, ground: 0x6b7a48 }
+};
+for (const k in PAL) for (const j in PAL[k]) PAL[k][j] = new THREE.Color(PAL[k][j]);
+const tmpC = {}; for (const j in PAL.day) tmpC[j] = new THREE.Color();
+const sunDir = new THREE.Vector3();
+let nightF = 0, dayT = .31;
+function updateSky() {
+  const a = (dayT - .25) * Math.PI * 2;
+  sunDir.set(Math.cos(a), Math.sin(a), .4).normalize();
+  const e = sunDir.y, dayF = smooth(-.12, .3, e), duskF = Math.max(0, 1 - Math.abs(e - .03) / .22) * .85;
+  nightF = 1 - smooth(-.15, .05, e);
+  for (const j in tmpC) tmpC[j].copy(PAL.night[j]).lerp(PAL.day[j], dayF).lerp(PAL.dusk[j], duskF);
+  skyMat.uniforms.top.value.copy(tmpC.top); skyMat.uniforms.bottom.value.copy(tmpC.bot); skyMat.uniforms.sunDir.value.copy(sunDir); skyMat.uniforms.sunColor.value.copy(tmpC.sun); skyMat.uniforms.night.value = nightF;
+  scene.fog.color.copy(tmpC.fog); scene.fog.near = lerp(40, 80, dayF); scene.fog.far = lerp(340, 560, dayF);
+  hemi.color.copy(tmpC.hemi); hemi.groundColor.copy(tmpC.ground); hemi.intensity = lerp(.7, 1.0, dayF) + duskF * .5;
+  const up = e > -.02, dir = up ? sunDir : sunDir.clone().negate();
+  sun.color.copy(up ? tmpC.sun : PAL.night.sun); sun.intensity = up ? 2.4 * smooth(-.02, .08, e) : .6 * smooth(0, .15, -e);
+  sun.position.copy(P.pos).addScaledVector(dir, 120); sun.target.position.copy(P.pos);
+  starMat.opacity = nightF; stars.position.copy(camera.position); sky.position.copy(camera.position);
+  clouds.mat && clouds.mat.emissive.copy(tmpC.fog).multiplyScalar(.45);
+  if (audio) audio.isDay = e > .05;
+}
+const periods = [[5, 'ည · Night'], [7, 'အာရုဏ် · Dawn'], [11, 'မနက် · Morning'], [14, 'နေ့လယ် · Midday'], [17.5, 'ညနေ · Afternoon'], [19.5, 'နေဝင် · Sunset'], [21, 'မှောင်ရီ · Dusk'], [24, 'ည · Night']];
+function clockText() { const hrs = (dayT * 24) % 24, h = Math.floor(hrs), m = Math.floor((hrs - h) * 60 / 10) * 10; return `${MAPS[mapId].icon} ${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')} · ${periods.find(p => hrs < p[0])[1]}`; }
+
+/* ============ update ============ */
+function updatePlayer(dt) {
+  let f = 0, r = 0;
+  const frozen = uiOpen || quizOpen || traveling;
+  if (frozen) P.idle = 0;
+  else if (started) { f = (K.w || K.arrowup ? 1 : 0) - (K.s || K.arrowdown ? 1 : 0); r = (K.d || K.arrowright ? 1 : 0) - (K.a || K.arrowleft ? 1 : 0); }
+  let stick = 1, run = K.shift;
+  if (joy.id !== null && !frozen) { f = -joy.y; r = joy.x; const m = Math.hypot(f, r); if (m < .12) f = r = 0; stick = Math.max(.4, Math.min(1, m)); run = m > .92; }
+  const flying = powers.fly > 0;
+  const sy = Math.sin(cam.yaw), cy = Math.cos(cam.yaw);
+  let mx = -sy * f + cy * r, mz = -cy * f - sy * r; const len = Math.hypot(mx, mz);
+  const boost = (powers.speed > 0 ? 1.7 : 1) * (flying ? 1.5 : 1) * (powers.giant > 0 ? 1.4 : 1) * (powers.tiny > 0 ? .85 : 1);
+  const target = len > 0 ? (run ? 12 : 6.5 * stick) * P.runMul * boost : 0;
+  P.speed += (target - P.speed) * Math.min(1, dt * 8);
+  if (len > 0) { mx /= len; mz /= len; P.dx = mx; P.dz = mz; let d = Math.atan2(mx, mz) - P.yaw; d = Math.atan2(Math.sin(d), Math.cos(d)); P.yaw += d * Math.min(1, dt * 10); P.idle = 0; }
+  else P.idle += dt;
+  const step = P.speed * dt, nx = P.pos.x + P.dx * step, nz = P.pos.z + P.dz * step;
+  // stay on the island, and don't walk up walls (temple tiers) unless flying
+  const canGo = (x, z) => getHeight(x, z) > -1.1 && Math.hypot(x, z) < HALF * .95 && (flying || groundAt(x, z) - P.pos.y < 1.0);
+  if (canGo(nx, P.pos.z)) P.pos.x = nx;
+  if (canGo(P.pos.x, nz)) P.pos.z = nz;
+  const kx = Math.floor(P.pos.x / CS), kz = Math.floor(P.pos.z / CS);
+  for (let i = -1; i <= 1; i++) for (let j = -1; j <= 1; j++) { const list = colliders.get((kx + i) + ',' + (kz + j)); if (!list) continue;
+    for (const o of list) { const dx = P.pos.x - o.x, dz = P.pos.z - o.z, d = Math.hypot(dx, dz), m = o.r + .35; if (d < m && d > 1e-4) { P.pos.x = o.x + dx / d * m; P.pos.z = o.z + dz / d * m; } } }
+  const gh = groundAt(P.pos.x, P.pos.z);
+  if (flying) {
+    P.glide = true;
+    const up = (K[' '] || jumpHeld) && !frozen, tv = up ? 9 : -1.2;
+    P.vy += (tv - P.vy) * Math.min(1, dt * 4);
+    if (P.pos.y > gh + 60) P.vy = Math.min(P.vy, 0);
+    P.pos.y += P.vy * dt;
+    if (P.pos.y <= gh) { P.pos.y = gh; P.vy = Math.max(P.vy, 0); P.onGround = true; } else P.onGround = false;
+  } else {
+    const jv = P.jumpV * (powers.jump > 0 ? 1.8 : 1);
+    if (jumpQueued && P.onGround && started && !frozen) { P.vy = jv; P.onGround = false; P.idle = 0; }
+    P.vy -= 28 * dt;
+    if (P.glide && P.vy < -5) P.vy = -5; // after flying, float down gently
+    P.pos.y += P.vy * dt;
+    if (P.pos.y <= gh || (P.onGround && P.vy <= 0 && P.pos.y - gh < .8)) { P.pos.y = gh; P.vy = 0; P.onGround = true; P.glide = false; }
+    else if (P.pos.y - gh > .3) P.onGround = false;
+  }
+  jumpQueued = false;
+  // lava is too hot: bounce out
+  if (W.lava && Math.hypot(P.pos.x - W.lava.x, P.pos.z - W.lava.z) < W.lava.r && P.pos.y < W.lava.y + 1.2) {
+    P.vy = 16; P.onGround = false; P.glide = true; P.pos.y = W.lava.y + 1.3;
+    const ax = P.pos.x - W.lava.x, az = P.pos.z - W.lava.z, al = Math.hypot(ax, az) || 1; P.dx = ax / al; P.dz = az / al; P.speed = 10;
+    if (P.hot <= 0) { toast('🔥 အပူကြီး! Too hot!', 'မီးတောင်ချော်ရည်ထဲ မဝင်ရဘူးနော် · Stay out of the lava!', ''); P.hot = 4; }
+  }
+  P.hot -= dt;
+
+  // animation
+  const pl = player, amt = Math.min(1, P.speed / 6);
+  P.phase += dt * (3 + P.speed * 1.3);
+  const sw = Math.sin(P.phase) * .75 * amt * (flying ? .3 : 1);
+  P.sit += ((P.idle > 10 && P.onGround ? 1 : 0) - P.sit) * Math.min(1, dt * 3);
+  pl.g.position.copy(P.pos); pl.g.rotation.y = P.yaw;
+  pl.body.position.y = Math.abs(Math.cos(P.phase)) * .08 * amt - .47 * P.sit + Math.sin(U.time.value * 2) * .01;
+  pl.body.rotation.x = flying && !P.onGround ? Math.min(.5, P.speed * .04) : 0;
+  const air = P.onGround ? 0 : 1;
+  pl.legL.rotation.x = lerp(lerp(sw, -.5, air), -1.5, P.sit); pl.legR.rotation.x = lerp(lerp(-sw, .3, air), -1.5, P.sit);
+  pl.armL.rotation.x = lerp(lerp(-sw * .8, -.9, air), -.4, P.sit); pl.armR.rotation.x = lerp(lerp(sw * .8, -.9, air), -.4, P.sit);
+  pl.armL.rotation.z = lerp(-.08, flying ? -1.2 : -.5, air); pl.armR.rotation.z = lerp(.08, flying ? 1.2 : .5, air);
+  pl.tail.rotation.x = .2 + amt * .9 + Math.sin(U.time.value * 6) * .1 * (amt + .3);
+  if (pl.pony) pl.pony.rotation.x = -.25 - amt * .5 + Math.sin(P.phase) * .15 * amt;
+  // giant / tiny, name tag, glow and treasure compass
+  const sTarget = powers.giant > 0 ? 2.2 : powers.tiny > 0 ? .5 : 1;
+  P.scale += (sTarget - P.scale) * Math.min(1, dt * 4); pl.g.scale.setScalar(P.scale);
+  pl.tag.position.y = (look.bigHead ? 2.75 : 2.45) - P.sit * .45; pl.tag.visible = cam.ui < .3;
+  pl.glow.intensity = powers.glow > 0 ? 3.5 + Math.sin(U.time.value * 3) * .5 : 0;
+  pl.arrow.visible = false;
+  if (powers.compass > 0) {
+    let best = null, bd = 1e9;
+    for (const c of W.chests) if (!c.opened) { const d = Math.hypot(c.x - P.pos.x, c.z - P.pos.z); if (d < bd) { bd = d; best = c; } }
+    if (!best && W.portal) best = W.portal;
+    if (best) {
+      const ax = best.x - P.pos.x, az = best.z - P.pos.z, al = Math.hypot(ax, az) || 1;
+      pl.arrow.visible = true; pl.arrow.rotation.y = Math.atan2(ax, az);
+      pl.arrow.position.set(P.pos.x + ax / al * 1.4 * P.scale, P.pos.y + 1.1 * P.scale + Math.sin(U.time.value * 4) * .1, P.pos.z + az / al * 1.4 * P.scale);
+    }
+  }
+  pl.wings.visible = flying || (P.glide && !P.onGround);
+  const flap = Math.sin(U.time.value * (flying ? 12 : 5)) * .5;
+  pl.wLp.rotation.y = -.3 + flap; pl.wRp.rotation.y = .3 - flap;
+}
+function updateCamera(dt) {
+  if (!started) cam.yaw += dt * .04;
+  if (P.idle > 16) cam.yaw += dt * .025;
+  // character-creator close-up: ease in front of the face without touching the player's own camera settings
+  cam.ui += ((uiOpen ? 1 : 0) - cam.ui) * Math.min(1, dt * 4);
+  if (uiOpen && !dragging && !looks.size) { let d = P.yaw - cam.yaw; d = Math.atan2(Math.sin(d), Math.cos(d)); cam.yaw += d * Math.min(1, dt * 3); }
+  cam.dist += (cam.tdist - cam.dist) * Math.min(1, dt * 6);
+  const headY = 1.5 + (look.bigHead ? .2 : 0);
+  cam.target.lerp(new THREE.Vector3(P.pos.x, P.pos.y + lerp(1.5, headY, cam.ui) * P.scale - P.sit * .4, P.pos.z), 1 - Math.exp(-dt * 10));
+  const dist = lerp(cam.dist * Math.max(1, P.scale * .8),(look.bigHead ? 3.2 : 2.6) * (innerWidth < innerHeight ? 1.45 : 1), cam.ui), pitch = lerp(cam.pitch, .08, cam.ui);
+  const cp = Math.cos(pitch), x = cam.target.x + Math.sin(cam.yaw) * cp * dist, z = cam.target.z + Math.cos(cam.yaw) * cp * dist;
+  let y = cam.target.y + Math.sin(pitch) * dist; y = Math.max(y, groundAt(x, z) + .8, .9);
+  camera.position.set(x, y, z); camera.lookAt(cam.target);
+  // slide the character out from behind the side panel on wide screens
+  // (on narrow phones the panel is a bottom sheet, so lift the character up instead)
+  const narrow = innerWidth <= 700, sx = narrow ? 0 : -Math.min(180, innerWidth * .18) * cam.ui, sy = narrow ? innerHeight * .26 * cam.ui : 0;
+  if (Math.abs(sx) + Math.abs(sy) > .5) camera.setViewOffset(innerWidth, innerHeight, sx, sy, innerWidth, innerHeight); else if (camera.view) camera.clearViewOffset();
+}
+let powerHudT = 0;
+function updatePowers(dt) {
+  for (const k in powers) if (powers[k] > 0) powers[k] = Math.max(0, powers[k] - dt);
+  const j = $('jump'), fl = powers.fly > 0;
+  if (j.classList.contains('fly') !== fl) { j.classList.toggle('fly', fl); j.innerHTML = fl ? 'Fly ⬆<br>ပျံ' : 'Jump<br>ခုန်'; }
+  if ((powerHudT -= dt) > 0) return; powerHudT = .15;
+  const box = $('powers');
+  box.innerHTML = '';
+  for (const k in powers) if (powers[k] > 0) {
+    const d = document.createElement('div'); d.className = 'pw'; d.textContent = `${powerIcon[k]} ${Math.ceil(powers[k])}s`;
+    const bar = document.createElement('i'); bar.style.width = (powers[k] / powerMax[k] * 100) + '%'; d.appendChild(bar); box.appendChild(d);
+  }
+}
+function updateWorld(dt) {
+  const t = U.time.value, busy = !started || uiOpen || quizOpen || traveling;
+  nearChest = null; let nd = 3.2;
+  for (const c of W.chests) {
+    if (c.opened) { c.open = Math.min(1, c.open + dt * .9); c.lid.rotation.x = -1.9 * (1 - Math.pow(1 - c.open, 3)); c.beamMat.uniforms.uStrength.value = 1 - c.open; if (c.open >= 1) c.beam.visible = false; }
+    else { c.beamMat.uniforms.uStrength.value = 1 + nightF * .6; const d = Math.hypot(c.x - P.pos.x, c.z - P.pos.z); if (d < nd && Math.abs(c.y - P.pos.y) < 3) { nd = d; nearChest = c; } }
+  }
+  $('prompt').classList.toggle('on', !!nearChest && started && !quizOpen);
+  // wisdom stones
+  for (let i = W.stones.length - 1; i >= 0; i--) {
+    const s = W.stones[i];
+    s.crystal.rotation.y = t * 1.2 + i; s.crystal.position.y = 1.5 + Math.sin(t * 2 + i) * .15;
+    s.beamMat.uniforms.uStrength.value = .8 + nightF * .6;
+    if (s.state === 'gone') {
+      s.t += dt; s.g.scale.setScalar(Math.max(.001, 1 - s.t * 2));
+      if (s.t > 25) { world.remove(s.g); s.g.traverse(o => { if (o.material && o.material !== undefined && !o.isSprite) o.material.dispose(); }); W.stones.splice(i, 1); makeStone(); }
+      continue;
+    }
+    const d = Math.hypot(s.x - P.pos.x, s.z - P.pos.z);
+    if (s.cool && d > 4) s.cool = false;
+    if (!busy && !s.cool && d < 1.9 && Math.abs(s.y - P.pos.y) < 3) openQuiz(s);
+  }
+  // portal
+  if (W.portal && !busy && Math.hypot(P.pos.x - W.portal.x, P.pos.z - W.portal.z) < 1.4 && Math.abs(P.pos.y - W.portal.y) < 4) travel(W.portal.to);
+  // sparkles
+  if (burstLife > 0) {
+    burstLife -= dt;
+    for (let i = 0; i < burstN; i++) { burstVel[i * 3 + 1] -= 3 * dt; for (let k = 0; k < 3; k++) burstPos[i * 3 + k] += burstVel[i * 3 + k] * dt; }
+    burstGeo.attributes.position.needsUpdate = true; burstMat.opacity = Math.min(1, burstLife); burstLight.intensity = Math.max(0, burstLife) * 6;
+  } else { burstMat.opacity = 0; burstLight.intensity = 0; }
+  // rainbow / flight trail
+  const emit = powers.rainbow > 0 ? 3 : (powers.fly > 0 || (P.glide && !P.onGround)) ? 2 : 0;
+  for (let e = 0; e < emit; e++) {
+    const i = trailIdx = (trailIdx + 1) % TRAIL;
+    trailPos[i * 3] = P.pos.x + (Math.random() - .5) * .5; trailPos[i * 3 + 1] = P.pos.y + .3 + Math.random() * 1.1; trailPos[i * 3 + 2] = P.pos.z + (Math.random() - .5) * .5;
+    if (powers.rainbow > 0) tc.setHSL((t * .6 + e * .12) % 1, 1, .6); else tc.set(Math.random() < .5 ? 0xffffff : 0xbfe6ff);
+    trailCol[i * 3] = tc.r; trailCol[i * 3 + 1] = tc.g; trailCol[i * 3 + 2] = tc.b; trailLife[i] = 1.6;
+  }
+  for (let i = 0; i < TRAIL; i++) if (trailLife[i] > 0) {
+    trailLife[i] -= dt; trailPos[i * 3 + 1] += dt * .25;
+    const k = 1 - dt * .9; trailCol[i * 3] *= k; trailCol[i * 3 + 1] *= k; trailCol[i * 3 + 2] *= k;
+    if (trailLife[i] <= 0) trailPos[i * 3 + 1] = -999;
+  }
+  trailGeo.attributes.position.needsUpdate = true; trailGeo.attributes.color.needsUpdate = true;
+  // pollen by day, fireflies by night
+  for (let i = 0; i < MOTES; i++) {
+    let d = moteData[i];
+    if (!d || Math.hypot(d.x - P.pos.x, d.z - P.pos.z) > 45) { d = moteData[i] = { x: P.pos.x + (Math.random() * 2 - 1) * 40, z: P.pos.z + (Math.random() * 2 - 1) * 40, y0: .6 + Math.random() * 3.5, ph: Math.random() * 6, sp: .3 + Math.random() * .6 }; }
+    d.ph += dt * d.sp; const x = d.x + Math.sin(d.ph) * 1.5, z = d.z + Math.cos(d.ph * .8) * 1.5;
+    motePos[i * 3] = x; motePos[i * 3 + 1] = Math.max(getHeight(x, z), 0) + d.y0 + Math.sin(d.ph * 1.3) * .5; motePos[i * 3 + 2] = z;
+  }
+  moteGeo.attributes.position.needsUpdate = true;
+  moteMat.color.setRGB(lerp(1, .85, nightF), 1, lerp(1, .45, nightF));
+  moteMat.opacity = lerp(.35, .95 * (.7 + .3 * Math.sin(t * 3)), nightF); moteMat.size = lerp(.18, .5, nightF);
+  for (const c of clouds) { c.position.x += c.userData.speed * dt; if (c.position.x > 750) c.position.x = -750; }
+  for (const f of W.flags) f.rotation.y = Math.sin(t * 3 + f.position.y) * .3;
+  for (const cr of W.crystals) { if (cr.userData.flame) { cr.scale.setScalar(.8 + Math.sin(t * 12 + cr.position.x) * .2); continue; } cr.position.y = 2 + Math.sin(t * 1.2 + cr.parent.position.x) * .25; cr.rotation.y = t * .6; }
+  for (const b of W.birds) {
+    const u = b.userData; u.ph += u.sp * dt;
+    const x = u.cx + Math.cos(u.ph) * u.r, z = u.cz + Math.sin(u.ph) * u.r;
+    b.position.set(x, u.h + Math.sin(u.ph * 3) * 2, z); b.rotation.y = Math.atan2(-Math.sin(u.ph) * Math.sign(u.sp), Math.cos(u.ph) * Math.sign(u.sp));
+    const fl = Math.sin(t * 10 + u.ph * 7) * .6; u.wl.rotation.z = fl; u.wr.rotation.z = -fl;
+  }
+  if (W.smoke) {
+    const S = W.smoke;
+    S.data.forEach((d, i) => { d.y += d.sp * dt; if (d.y > 60) { d.y = 0; d.r = Math.random() * 8; } const r = d.r + d.y * .25;
+      S.pos[i * 3] = VX + Math.cos(d.a) * r; S.pos[i * 3 + 1] = S.y0 + d.y; S.pos[i * 3 + 2] = VZ + Math.sin(d.a) * r; });
+    S.pts.geometry.attributes.position.needsUpdate = true;
+  }
+}
+
+/* ============ travel between maps ============ */
+function travel(to) {
+  if (traveling) return; traveling = true;
+  saveProgress(); resetJoy(); jumpHeld = false;
+  const M = MAPS[to];
+  $('fade-txt').textContent = `${M.icon} ${M.name} · ${M.mm} …`; $('fade').classList.add('on');
+  setTimeout(() => {
+    buildWorld(to);
+    P.pos.copy(spawn); P.vy = 0; P.glide = false; progress.map = to;
+    cam.target.set(P.pos.x, P.pos.y + 1.5, P.pos.z); cam.yaw = to === 'jungle' ? Math.atan2(spawn.x - VX, spawn.z - VZ) : Math.atan2(spawn.x - W.portal.x, spawn.z - W.portal.z); // jungle: face the volcano
+    cam.pitch = .25;
+    applyPerks(); updateHUD(); saveProgress();
+    setTimeout(() => {
+      $('fade').classList.remove('on'); traveling = false;
+      toast(`${M.icon} ${M.name}`, M.mm + (to === 'jungle' ? ' — ရတနာ ၁၂ ခု အသစ် ရှာပါ! 12 new treasures!' : ''), 'ရောက်ပြီ! Welcome to');
+    }, 250);
+  }, 700);
+}
+
+/* ============ main loop ============ */
+let last = performance.now(), hudTimer = 0, saveTimer = 0;
+function frame(now) {
+  const dt = Math.min(.05, (now - last) / 1000); last = now; U.time.value += dt;
+  dayT = (dayT + dt / 480 * (sunDir.y < -.1 ? 2.2 : 1) * (K.t && started ? 30 : 1)) % 1;
+  updatePowers(dt); updatePlayer(dt); updateCamera(dt); updateSky(); updateWorld(dt);
+  if ((hudTimer -= dt) < 0) { hudTimer = .5; $('clock').textContent = clockText(); }
+  if (started && !traveling && (saveTimer -= dt) < 0) { saveTimer = 5; saveProgress(); }
+  renderer.render(scene, camera);
+  requestAnimationFrame(frame);
+}
+
+/* ============ character creator ============ */
+const CHOICES = {
+  hair: [['short', 'Short · တို'], ['long', 'Long · ရှည်'], ['braids', 'Braids · ကျစ်ဆံမြီး'], ['ponytail', 'Ponytail'], ['buns', 'Buns · ဆံထုံး']],
+  hat: [['wizard', 'Wizard 🧙'], ['flowers', 'Flowers 🌸'], ['crown', 'Crown 👑', 15], ['bunny', 'Bunny 🐰', 30], ['cat', 'Cat 🐱', 50], ['none', 'None']],
+  hairColor: ['#1f1a1c', '#4a3426', '#7a4b2a', '#b5793f', '#e3c27a', '#c2554a', '#8a6ad1', '#e892b5'],
+  skin: ['#fbe0c8', '#f2c9a0', '#e0b088', '#d9a67c', '#c68b5c', '#9c6a45', '#6e4a33'],
+  outfit: ['#e4dcf2', '#3f8f86', '#6b8ed6', '#e07a9a', '#f2b84b', '#8f6fc4', '#f4f1ea', '#4b5d3a', '#d9644a'],
+  scarf: ['#e8664a', '#f7c948', '#f29ac0', '#7fc8f8', '#ffffff', '#8fd18a'],
+  bag: ['#f2b8c6', '#a5784b', '#7fc8f8', '#f7c948', '#8fd18a', '#8f6fc4']
+};
+function changed() { applyLook(); saveLook(); syncCloset(); }
+function syncCloset() {
+  document.querySelectorAll('#closet [data-k]').forEach(box => box.querySelectorAll('button').forEach(b => {
+    b.classList.toggle('sel', b.dataset.v === look[box.dataset.k]);
+    if (b.dataset.need) { const locked = progress.stars < +b.dataset.need; b.classList.toggle('locked', locked); b.textContent = locked ? `🔒 ${b.dataset.need}⭐` : b.dataset.label; }
+  }));
+  $('lk-adjust').classList.toggle('off', !look.photo);
+  $('lk-clear').style.display = look.photo ? '' : 'none';
+  $('lk-zoom').value = look.zoom; $('lk-ox').value = look.ox; $('lk-oy').value = look.oy; $('lk-big').checked = look.bigHead;
+}
+function buildCloset() {
+  document.querySelectorAll('#closet [data-k]').forEach(box => {
+    const k = box.dataset.k;
+    for (const c of CHOICES[k]) {
+      const b = document.createElement('button'), v = Array.isArray(c) ? c[0] : c;
+      b.dataset.v = v;
+      if (Array.isArray(c)) { b.className = 'btn'; b.textContent = b.dataset.label = c[1]; if (c[2]) b.dataset.need = c[2]; } else { b.style.background = c; b.title = c; }
+      b.onclick = () => {
+        if (b.dataset.need && progress.stars < +b.dataset.need) { toast(`🔒 ⭐ ${b.dataset.need} ကြယ် လိုတယ်`, `Need ${b.dataset.need} stars — answer questions at the glowing stones! 💎`, ''); return; }
+        look[k] = v; changed();
+      };
+      box.appendChild(b);
+    }
+  });
+  $('lk-name').value = look.name;
+  $('lk-name').oninput = e => { look.name = e.target.value.trim(); saveLook(); updateNameTag(); };
+  $('lk-upload').onclick = () => $('lk-file').click();
+  $('lk-file').onchange = e => {
+    const f = e.target.files[0]; if (!f) return;
+    const img = new Image(), url = URL.createObjectURL(f);
+    img.onload = () => {
+      // keep a small copy so it fits in browser storage
+      const s = Math.min(1, 512 / Math.max(img.width, img.height)), c = document.createElement('canvas');
+      c.width = Math.round(img.width * s); c.height = Math.round(img.height * s); c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+      URL.revokeObjectURL(url);
+      Object.assign(look, { photo: c.toDataURL('image/jpeg', .88), zoom: 1.4, ox: 0, oy: 0, bigHead: true });
+      loadFaceImg(changed);
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); toast('ပုံ ဖတ်လို့မရဘူး', 'Could not read that image — try a JPG or PNG photo.', 'Photo'); };
+    img.src = url; e.target.value = '';
+  };
+  $('lk-clear').onclick = () => { look.photo = null; loadFaceImg(changed); };
+  for (const k of ['zoom', 'ox', 'oy']) $('lk-' + k).oninput = e => { look[k] = +e.target.value; renderFace(); saveLook(); };
+  $('lk-big').onchange = e => { look.bigHead = e.target.checked; changed(); };
+  $('lk-done').onclick = () => setCloset(false);
+  syncCloset();
+}
+function setCloset(on) {
+  if (quizOpen) return;
+  uiOpen = on; $('closet').classList.toggle('on', on);
+  if (on) { for (const k in K) K[k] = false; resetJoy(); if (document.pointerLockElement) document.exitPointerLock(); syncCloset(); }
+  else if (look.name) toast(`${look.name} လှလိုက်တာ! Looking lovely!`, 'ခရီးဆက်ကြရအောင် · Off you go!', '✿');
+}
+
+/* ============ start ============ */
+setTimeout(() => {
+  loadProgress();
+  dayT = progress.t;
+  buildClouds();
+  player = makePlayer();
+  buildWorld(progress.map in MAPS ? progress.map : 'kingdom');
+  loadFaceImg(() => applyLook());
+  buildCloset();
+  const mp = progress.maps[mapId];
+  if (mp.x != null && getHeight(mp.x, mp.z) > -1) P.pos.set(mp.x, groundAt(mp.x, mp.z), mp.z); else P.pos.copy(spawn);
+  applyPerks(); updateHUD();
+  if (document.fonts) document.fonts.ready.then(updateNameTag); // redraw once the Burmese font has loaded
+  cam.target.set(P.pos.x, P.pos.y + 1.5, P.pos.z);
+  window.qk = { P, W, cam, progress, powers, travel, openQuiz, camera, addXP, givePower, REWARDS }; // handy for testing from the console
+  requestAnimationFrame(t => { last = t; frame(t); });
+  const returning = progress.answered > 0 || foundIn('kingdom') > 0 || foundIn('jungle') > 0;
+  const go = $('go'); go.disabled = false; go.textContent = returning ? 'Continue · ဆက်ကစားမယ်' : 'Begin · စတင်မယ်';
+  const begin = dress => {
+    started = true; document.body.classList.add('playing'); $('start').classList.add('gone');
+    try { audio = new Lofi(); audio.start(); } catch (e) { console.warn('audio unavailable', e); }
+    if (TOUCH) { // full screen + landscape where the phone allows it
+      try { const el = document.documentElement, r = el.requestFullscreen && el.requestFullscreen({ navigationUI: 'hide' });
+        if (r && r.then) r.then(() => screen.orientation && screen.orientation.lock && screen.orientation.lock('landscape')).catch(() => {}); } catch (e) {}
+    }
+    if (dress) { setCloset(true); return; }
+    if (!TOUCH) try { const r = canvas.requestPointerLock(); if (r && r.catch) r.catch(() => {}); } catch (e) {}
+    setTimeout(() => toast(`မင်္ဂလာပါ ${look.name || 'traveler'}! 👋`, '💎 အလင်းကျောက်လေးတွေဆီ သွားပြီး မေးခွန်းဖြေ၊ ဆုယူပါ! Visit glowing stones to win powers!', returning ? 'Welcome back' : 'Welcome'), 1500);
+  };
+  go.onclick = () => begin(false);
+  $('dress').disabled = false; $('dress').onclick = () => begin(true);
+}, 50);
+</script>
+</body>
+</html>
